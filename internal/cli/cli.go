@@ -9,10 +9,11 @@ import (
 )
 
 var (
-	ErrUsage         = errors.New("Usage is shown")
-	ErrParseFailed   = errors.New("Cannot parse flags")
-	ErrArgument      = errors.New("Invalid argument")
-	ErrCommandFailed = errors.New("Command execution failed")
+	ErrUsage           = errors.New("Usage is shown")
+	ErrParseFailed     = errors.New("Cannot parse flags")
+	ErrArgument        = errors.New("Invalid argument")
+	ErrCommandFailed   = errors.New("Command execution failed")
+	ErrOperationFailed = errors.New("Operation failed")
 )
 
 type Cli struct {
@@ -44,6 +45,7 @@ func (c *Cli) ParseAndExec(args []string) error {
 	common := commonCmd{config: c.config, out: c.outWriter, err: c.errWriter, command: prog}
 	root := newRootCmd(common, c.version)
 	install := newInstallCmd(common, c.git)
+	list := newListCmd(common)
 	remove := newRemoveCmd(common)
 
 	if len(args) == 1 {
@@ -54,6 +56,8 @@ func (c *Cli) ParseAndExec(args []string) error {
 	switch args[1] {
 	case "install":
 		return install.parseAndExec(args[2:])
+	case "list":
+		return list.parseAndExec(args[2:])
 	case "remove":
 		return remove.parseAndExec(args[2:])
 	default:

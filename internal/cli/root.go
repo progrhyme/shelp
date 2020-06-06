@@ -41,6 +41,7 @@ Usage:
 Available subcommands:
   install  # install a package
   remove   # uninstall a package
+  list     # list installed packages
 
 `, cmd.command, cmd.command, cmd.command, cmd.command)
 	fmt.Fprint(cmd.err, "Options without subcommand:\n")

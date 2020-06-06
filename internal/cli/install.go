@@ -2,50 +2,48 @@ package cli
 
 import (
 	"fmt"
-	"io"
 	"path/filepath"
 	"regexp"
 
-	"github.com/progrhyme/claft/internal/config"
 	"github.com/progrhyme/claft/internal/git"
 	"github.com/spf13/pflag"
 )
 
 type installCmd struct {
-	flags   pflag.FlagSet
-	output  io.Writer
-	config  config.Config
-	git     git.Git
-	command string
-	option  struct {
+	commonCmd
+	git    git.Git
+	flags  pflag.FlagSet
+	option struct {
 		verbose *bool
+		commonFlags
 	}
 }
 
-func newInstallCmd(out io.Writer, cfg config.Config, git git.Git, prog string) installCmd {
+func newInstallCmd(common commonCmd, git git.Git) installCmd {
 	cmd := &installCmd{
-		flags:   *pflag.NewFlagSet("install", pflag.ContinueOnError),
-		output:  out,
-		config:  cfg,
-		git:     git,
-		command: prog,
+		git:   git,
+		flags: *pflag.NewFlagSet("install", pflag.ContinueOnError),
 	}
+	cmd.commonCmd = common
 
-	cmd.flags.SetOutput(out)
+	cmd.flags.SetOutput(cmd.err)
 	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "verbose output")
+	cmd.option.help = cmd.flags.BoolP("help", "h", false, "show help")
 	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 
 func (cmd *installCmd) usage() {
-	fmt.Fprintf(cmd.output, `Syntax:
+	fmt.Fprintf(cmd.err, `Install a GitHub repository as a package.
+
+Syntax:
   %s install <account>/<repository>
 
 Examples:
   %s install bats-core/bats-core
   %s install b4b4r07/enhancd
 
-option:
+Options:
 `, cmd.command, cmd.command, cmd.command)
 	cmd.flags.PrintDefaults()
 }
@@ -58,9 +56,14 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 
 	err := cmd.flags.Parse(args)
 	if err != nil {
-		fmt.Fprintf(cmd.output, "Error! %s\n", err)
+		fmt.Fprintf(cmd.err, "Error! %s\n", err)
 		cmd.flags.Usage()
 		return ErrParseFailed
+	}
+
+	if *cmd.option.help {
+		cmd.flags.Usage()
+		return nil
 	}
 
 	if cmd.flags.NArg() == 0 {
@@ -71,8 +74,8 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	re := regexp.MustCompile(`\w+/\w+`)
 	if !re.MatchString(cmd.flags.Arg(0)) {
 		fmt.Fprintf(
-			cmd.output,
-			"Error! Given argument %s does not look like valid repository\n",
+			cmd.err,
+			"Error! Given argument \"%s\" does not look like valid repository\n",
 			cmd.flags.Arg(0))
 		cmd.flags.Usage()
 		return ErrArgument

@@ -2,39 +2,36 @@ package cli
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/spf13/pflag"
 )
 
 type rootCmd struct {
+	commonCmd
 	flags   pflag.FlagSet
-	output  io.Writer
-	command string
 	version string
 	option  struct {
-		help    *bool
 		version *bool
+		commonFlags
 	}
 }
 
-func newRootCmd(out io.Writer, prog string, ver string) rootCmd {
+func newRootCmd(common commonCmd, ver string) rootCmd {
 	cmd := &rootCmd{
 		flags:   *pflag.NewFlagSet("main", pflag.ContinueOnError),
-		output:  out,
-		command: prog,
 		version: ver,
 	}
+	cmd.commonCmd = common
 
-	cmd.flags.SetOutput(out)
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "show help")
+	cmd.flags.SetOutput(cmd.err)
 	cmd.option.version = cmd.flags.BoolP("version", "v", false, "show version")
+	cmd.option.help = cmd.flags.BoolP("help", "h", false, "show help")
 	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 
 func (cmd *rootCmd) usage() {
-	fmt.Fprintf(cmd.output, `"%s" is a Git-based package manager for shell scripts written in Go.
+	fmt.Fprintf(cmd.err, `"%s" is a Git-based package manager for shell scripts written in Go.
 
 Usage:
   %s -h|--help
@@ -43,16 +40,17 @@ Usage:
 
 Available subcommands:
   install  # install a package
+  remove   # uninstall a package
 
 `, cmd.command, cmd.command, cmd.command, cmd.command)
-	fmt.Fprint(cmd.output, "option without subcommand:\n")
+	fmt.Fprint(cmd.err, "Options without subcommand:\n")
 	cmd.flags.PrintDefaults()
 }
 
 func (cmd *rootCmd) parseAndExec(args []string) error {
-	err := cmd.flags.Parse(args[1:])
+	err := cmd.flags.Parse(args)
 	if err != nil {
-		fmt.Fprintf(cmd.output, "Error! %s\n", err)
+		fmt.Fprintf(cmd.err, "Error! %s\n", err)
 		cmd.flags.Usage()
 		return ErrParseFailed
 	}
@@ -61,7 +59,7 @@ func (cmd *rootCmd) parseAndExec(args []string) error {
 		return nil
 	}
 
-	fmt.Fprintf(cmd.output, "Error! Subcommand not found: %s\n", cmd.flags.Arg(0))
+	fmt.Fprintf(cmd.err, "Error! Subcommand not found: %s\n", cmd.flags.Arg(0))
 	cmd.flags.Usage()
 	return ErrUsage
 }
@@ -73,7 +71,7 @@ func (cmd *rootCmd) withNoArg() bool {
 	}
 
 	if *cmd.option.version {
-		fmt.Printf("Version: %s\n", cmd.version)
+		fmt.Fprintf(cmd.out, "Version: %s\n", cmd.version)
 		return true
 	}
 

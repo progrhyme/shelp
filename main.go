@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/progrhyme/claft/internal/cli"
-	"github.com/progrhyme/claft/internal/config"
-	"github.com/progrhyme/claft/internal/git"
+	"github.com/progrhyme/shelp/internal/cli"
+	"github.com/progrhyme/shelp/internal/config"
+	"github.com/progrhyme/shelp/internal/git"
 )
 
 func main() {

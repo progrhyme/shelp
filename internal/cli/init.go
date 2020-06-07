@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/progrhyme/claft/internal/config"
+	"github.com/progrhyme/shelp/internal/config"
 	"github.com/spf13/pflag"
 )
 

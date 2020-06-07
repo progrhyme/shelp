@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/progrhyme/claft/internal/config"
+	"github.com/progrhyme/shelp/internal/config"
 	"github.com/spf13/pflag"
 	"golang.org/x/crypto/ssh/terminal"
 )

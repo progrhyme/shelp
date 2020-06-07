@@ -1,4 +1,4 @@
-module github.com/progrhyme/claft
+module github.com/progrhyme/shelp
 
 go 1.14
 

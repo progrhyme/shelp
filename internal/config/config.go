@@ -8,7 +8,7 @@ import (
 
 type Config struct{}
 
-var RootVarName string = "CLAFT_ROOT"
+var RootVarName string = "SHELP_ROOT"
 
 func NewConfig() Config {
 	return *new(Config)
@@ -35,5 +35,5 @@ func (c *Config) defaultRootPath() string {
 	if err != nil {
 		panic(fmt.Sprintf("Can't get HomeDir! Error: %v", err))
 	}
-	return filepath.Join(home, ".claft")
+	return filepath.Join(home, ".shelp")
 }

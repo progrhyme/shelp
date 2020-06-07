@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/progrhyme/claft/internal/git"
+	"github.com/progrhyme/shelp/internal/git"
 	"github.com/spf13/pflag"
 )
 

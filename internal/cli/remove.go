@@ -10,17 +10,15 @@ import (
 
 type removeCmd struct {
 	commonCmd
-	flags  pflag.FlagSet
 	option struct {
 		commonFlags
 	}
 }
 
 func newRemoveCmd(common commonCmd) removeCmd {
-	cmd := &removeCmd{
-		flags: *pflag.NewFlagSet("remove", pflag.ContinueOnError),
-	}
+	cmd := &removeCmd{}
 	cmd.commonCmd = common
+	cmd.flags = *pflag.NewFlagSet("remove", pflag.ContinueOnError)
 
 	cmd.flags.SetOutput(cmd.err)
 	cmd.option.help = cmd.flags.BoolP("help", "h", false, "show help")
@@ -44,26 +42,9 @@ Options:
 }
 
 func (cmd *removeCmd) parseAndExec(args []string) error {
-	if len(args) == 0 {
-		cmd.flags.Usage()
-		return ErrUsage
-	}
-
-	err := cmd.flags.Parse(args)
-	if err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
-		cmd.flags.Usage()
-		return ErrParseFailed
-	}
-
-	if *cmd.option.help {
-		cmd.flags.Usage()
-		return nil
-	}
-
-	if cmd.flags.NArg() == 0 {
-		cmd.flags.Usage()
-		return ErrUsage
+	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, true)
+	if done || err != nil {
+		return err
 	}
 
 	pkg := cmd.flags.Arg(0)

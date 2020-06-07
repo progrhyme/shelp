@@ -9,7 +9,6 @@ import (
 
 type listCmd struct {
 	commonCmd
-	flags  pflag.FlagSet
 	option struct {
 		verbose *bool
 		commonFlags
@@ -17,10 +16,9 @@ type listCmd struct {
 }
 
 func newListCmd(common commonCmd) listCmd {
-	cmd := &listCmd{
-		flags: *pflag.NewFlagSet("list", pflag.ContinueOnError),
-	}
+	cmd := &listCmd{}
 	cmd.commonCmd = common
+	cmd.flags = *pflag.NewFlagSet("list", pflag.ContinueOnError)
 
 	cmd.flags.SetOutput(cmd.err)
 	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "verbose output")
@@ -41,16 +39,9 @@ Options:
 }
 
 func (cmd *listCmd) parseAndExec(args []string) error {
-	err := cmd.flags.Parse(args)
-	if err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
-		cmd.flags.Usage()
-		return ErrParseFailed
-	}
-
-	if *cmd.option.help {
-		cmd.flags.Usage()
-		return nil
+	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, false)
+	if done || err != nil {
+		return err
 	}
 
 	pkgs, err := ioutil.ReadDir(cmd.config.PackagePath())

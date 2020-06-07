@@ -2,10 +2,12 @@ package cli
 
 import (
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/progrhyme/claft/internal/config"
 	"github.com/progrhyme/claft/internal/git"
+	"github.com/spf13/pflag"
 )
 
 var (
@@ -26,13 +28,10 @@ type Cli struct {
 
 type commonCmd struct {
 	config  config.Config
+	flags   pflag.FlagSet
 	out     io.Writer
 	err     io.Writer
 	command string
-}
-
-type commonFlags struct {
-	help *bool
 }
 
 func NewCli(ver string, cfg config.Config, g git.Git, out, err io.Writer) Cli {
@@ -63,4 +62,42 @@ func (c *Cli) ParseAndExec(args []string) error {
 	default:
 		return root.parseAndExec(args[1:])
 	}
+}
+
+type flagger interface {
+	helpFlg() *bool
+}
+
+type commonFlags struct {
+	help *bool
+}
+
+func (flag *commonFlags) helpFlg() *bool {
+	return flag.help
+}
+
+func parseStartHelp(flags *pflag.FlagSet, option flagger, output io.Writer, args []string, requireArg bool) (bool, error) {
+	if requireArg && len(args) == 0 {
+		flags.Usage()
+		return true, ErrUsage
+	}
+
+	err := flags.Parse(args)
+	if err != nil {
+		fmt.Fprintf(output, "Error! %s\n", err)
+		flags.Usage()
+		return true, ErrParseFailed
+	}
+
+	if *option.helpFlg() {
+		flags.Usage()
+		return true, nil
+	}
+
+	if requireArg && flags.NArg() == 0 {
+		flags.Usage()
+		return true, ErrUsage
+	}
+
+	return false, nil
 }

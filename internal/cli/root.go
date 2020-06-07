@@ -8,7 +8,6 @@ import (
 
 type rootCmd struct {
 	commonCmd
-	flags   pflag.FlagSet
 	version string
 	option  struct {
 		version *bool
@@ -17,11 +16,9 @@ type rootCmd struct {
 }
 
 func newRootCmd(common commonCmd, ver string) rootCmd {
-	cmd := &rootCmd{
-		flags:   *pflag.NewFlagSet("main", pflag.ContinueOnError),
-		version: ver,
-	}
+	cmd := &rootCmd{version: ver}
 	cmd.commonCmd = common
+	cmd.flags = *pflag.NewFlagSet("main", pflag.ContinueOnError)
 
 	cmd.flags.SetOutput(cmd.err)
 	cmd.option.version = cmd.flags.BoolP("version", "v", false, "show version")
@@ -49,32 +46,17 @@ Available subcommands:
 }
 
 func (cmd *rootCmd) parseAndExec(args []string) error {
-	err := cmd.flags.Parse(args)
-	if err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
-		cmd.flags.Usage()
-		return ErrParseFailed
+	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, false)
+	if done || err != nil {
+		return err
 	}
 
-	if cmd.withNoArg() {
+	if *cmd.option.version {
+		fmt.Fprintf(cmd.out, "Version: %s\n", cmd.version)
 		return nil
 	}
 
 	fmt.Fprintf(cmd.err, "Error! Subcommand not found: %s\n", cmd.flags.Arg(0))
 	cmd.flags.Usage()
 	return ErrUsage
-}
-
-func (cmd *rootCmd) withNoArg() bool {
-	if *cmd.option.help {
-		cmd.flags.Usage()
-		return true
-	}
-
-	if *cmd.option.version {
-		fmt.Fprintf(cmd.out, "Version: %s\n", cmd.version)
-		return true
-	}
-
-	return false
 }

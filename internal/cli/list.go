@@ -21,14 +21,15 @@ func newListCmd(common commonCmd) listCmd {
 	cmd.flags = *pflag.NewFlagSet("list", pflag.ContinueOnError)
 
 	cmd.flags.SetOutput(cmd.err)
-	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "verbose output")
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "show help")
+	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "# Verbose output")
+	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
 	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 
 func (cmd *listCmd) usage() {
-	fmt.Fprintf(cmd.err, `List installed packages.
+	fmt.Fprintf(cmd.err, `Summary:
+  List installed packages.
 
 Syntax:
   %s list

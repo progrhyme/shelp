@@ -21,13 +21,14 @@ func newRemoveCmd(common commonCmd) removeCmd {
 	cmd.flags = *pflag.NewFlagSet("remove", pflag.ContinueOnError)
 
 	cmd.flags.SetOutput(cmd.err)
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "show help")
+	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
 	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 
 func (cmd *removeCmd) usage() {
-	fmt.Fprintf(cmd.err, `Uninstall a package.
+	fmt.Fprintf(cmd.err, `Summary:
+  Uninstall a package.
 
 Syntax:
   %s remove <package>

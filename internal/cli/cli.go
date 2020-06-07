@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path/filepath"
 
 	"github.com/progrhyme/claft/internal/config"
 	"github.com/progrhyme/claft/internal/git"
@@ -39,13 +40,13 @@ func NewCli(ver string, cfg config.Config, g git.Git, out, err io.Writer) Cli {
 }
 
 func (c *Cli) ParseAndExec(args []string) error {
-	prog := args[0]
+	prog := filepath.Base(args[0])
 
 	common := commonCmd{config: c.config, out: c.outWriter, err: c.errWriter, command: prog}
 	root := newRootCmd(common, c.version)
-	install := newInstallCmd(common, c.git)
-	list := newListCmd(common)
-	remove := newRemoveCmd(common)
+	installer := newInstallCmd(common, c.git)
+	lister := newListCmd(common)
+	remover := newRemoveCmd(common)
 
 	if len(args) == 1 {
 		root.flags.Usage()
@@ -54,11 +55,11 @@ func (c *Cli) ParseAndExec(args []string) error {
 
 	switch args[1] {
 	case "install":
-		return install.parseAndExec(args[2:])
+		return installer.parseAndExec(args[2:])
 	case "list":
-		return list.parseAndExec(args[2:])
+		return lister.parseAndExec(args[2:])
 	case "remove":
-		return remove.parseAndExec(args[2:])
+		return remover.parseAndExec(args[2:])
 	default:
 		return root.parseAndExec(args[1:])
 	}

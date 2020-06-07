@@ -21,26 +21,30 @@ func newRootCmd(common commonCmd, ver string) rootCmd {
 	cmd.flags = *pflag.NewFlagSet("main", pflag.ContinueOnError)
 
 	cmd.flags.SetOutput(cmd.err)
-	cmd.option.version = cmd.flags.BoolP("version", "v", false, "show version")
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "show help")
+	cmd.option.version = cmd.flags.BoolP("version", "v", false, "# Show CLI version")
+	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
 	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 
 func (cmd *rootCmd) usage() {
-	fmt.Fprintf(cmd.err, `"%s" is a Git-based package manager for shell scripts written in Go.
+	fmt.Fprintf(cmd.err, `Summary:
+  "%s" is a Git-based package manager for shell scripts written in Go.
 
 Usage:
+  %s COMMAND [arguments...] [options...]
   %s -h|--help
   %s -v|--version
-  %s COMMAND [arguments...] [option...]
 
-Available subcommands:
-  install  # install a package
-  remove   # uninstall a package
-  list     # list installed packages
+Available Commands:
+  install  # Install a package
+  remove   # Uninstall a package
+  list     # List installed packages
+  destroy  # Delete all materials including packages
 
-`, cmd.command, cmd.command, cmd.command, cmd.command)
+Run "%s COMMAND -h|--help" to see usage of each command.
+
+`, cmd.command, cmd.command, cmd.command, cmd.command, cmd.command)
 	fmt.Fprint(cmd.err, "Options without subcommand:\n")
 	cmd.flags.PrintDefaults()
 }

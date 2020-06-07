@@ -26,14 +26,15 @@ func newInstallCmd(common commonCmd, git git.Git) installCmd {
 	cmd.flags = *pflag.NewFlagSet("install", pflag.ContinueOnError)
 
 	cmd.flags.SetOutput(cmd.err)
-	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "verbose output")
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "show help")
+	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "# Verbose output")
+	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
 	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 
 func (cmd *installCmd) usage() {
-	fmt.Fprintf(cmd.err, `Install a GitHub repository as a package.
+	fmt.Fprintf(cmd.err, `Summary:
+  Install a repository in github.com as a %s package, assuming it contains shell scripts.
 
 Syntax:
   %s install <account>/<repository>
@@ -43,7 +44,7 @@ Examples:
   %s install b4b4r07/enhancd
 
 Options:
-`, cmd.command, cmd.command, cmd.command)
+`, cmd.command, cmd.command, cmd.command, cmd.command)
 	cmd.flags.PrintDefaults()
 }
 

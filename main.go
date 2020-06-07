@@ -14,7 +14,10 @@ func main() {
 	c := cli.NewCli(version, cfg, g, os.Stdout, os.Stderr)
 	e := c.ParseAndExec(os.Args)
 
-	if e != nil {
+	switch e {
+	case nil, cli.ErrCanceled:
+		// OK
+	default:
 		os.Exit(1)
 	}
 }

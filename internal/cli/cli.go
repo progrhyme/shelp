@@ -17,6 +17,7 @@ var (
 	ErrArgument        = errors.New("Invalid argument")
 	ErrCommandFailed   = errors.New("Command execution failed")
 	ErrOperationFailed = errors.New("Operation failed")
+	ErrCanceled        = errors.New("Operation is canceled")
 )
 
 type Cli struct {

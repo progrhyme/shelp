@@ -60,7 +60,7 @@ func (cmd *removeCmd) parseAndExec(args []string) error {
 
 	if err = os.RemoveAll(path); err != nil {
 		fmt.Fprintf(cmd.err, "Error! Package removal failed. Path = %s\n", path)
-		return ErrCommandFailed
+		return ErrOperationFailed
 	}
 
 	fmt.Fprintf(cmd.out, "%s is removed\n", pkg)

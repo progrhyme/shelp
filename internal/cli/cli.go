@@ -47,6 +47,7 @@ func (c *Cli) ParseAndExec(args []string) error {
 	installer := newInstallCmd(common, c.git)
 	lister := newListCmd(common)
 	remover := newRemoveCmd(common)
+	destroyer := newDestroyCmd(common)
 
 	if len(args) == 1 {
 		root.flags.Usage()
@@ -60,6 +61,8 @@ func (c *Cli) ParseAndExec(args []string) error {
 		return lister.parseAndExec(args[2:])
 	case "remove", "uninstall":
 		return remover.parseAndExec(args[1:])
+	case "destroy":
+		return destroyer.parseAndExec(args[2:])
 	default:
 		return root.parseAndExec(args[1:])
 	}

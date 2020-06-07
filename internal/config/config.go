@@ -8,12 +8,14 @@ import (
 
 type Config struct{}
 
+var RootVarName string = "CLAFT_ROOT"
+
 func NewConfig() Config {
 	return *new(Config)
 }
 
 func (c *Config) RootPath() string {
-	path := os.Getenv("CLAFT_ROOT")
+	path := os.Getenv(RootVarName)
 	if path == "" {
 		path = c.defaultRootPath()
 	}

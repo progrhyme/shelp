@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 )
@@ -22,16 +23,22 @@ func NewGit(out, err io.Writer) Git {
 	return Git{cmd: cmd, out: out, err: err, shallow: true}
 }
 
-func (g *Git) Clone(src, dst string) error {
+func (g *Git) Clone(src, dst string, verbose bool) error {
 	args := []string{"clone", src, dst}
 	if g.shallow {
 		args = append(args, "--depth=1")
 	}
 	cmd := exec.Command(g.cmd, args...)
-	cmd.Stdout = g.out
-	cmd.Stderr = g.err
-	// Debug. TODO: remove
-	fmt.Fprintln(cmd.Stdout, cmd.String())
+	if verbose {
+		cmd.Stdout = g.out
+		cmd.Stderr = g.err
+	} else {
+		cmd.Stdout = ioutil.Discard
+		cmd.Stderr = ioutil.Discard
+	}
+	if verbose {
+		fmt.Fprintln(cmd.Stdout, cmd.String())
+	}
 
 	return cmd.Run()
 }

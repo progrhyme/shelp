@@ -74,8 +74,14 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 
 	pkg := filepath.Base(cmd.flags.Arg(0))
 	pkgPath := filepath.Join(cmd.config.PackagePath(), pkg)
+	if _, err := os.Stat(pkgPath); !os.IsNotExist(err) {
+		fmt.Fprintf(cmd.err, "\"%s\" is already installed\n", pkg)
+		return ErrArgument
+	}
+
 	url := fmt.Sprintf("https://github.com/%s.git", cmd.flags.Arg(0))
-	err = cmd.git.Clone(url, pkgPath)
+	fmt.Fprintf(cmd.out, "Fetching \"%s\" from %s ...\n", pkg, url)
+	err = cmd.git.Clone(url, pkgPath, *cmd.option.verbose)
 	if err != nil {
 		return ErrCommandFailed
 	}
@@ -90,6 +96,7 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 		return err
 	}
 
+	fmt.Fprintf(cmd.out, "\"%s\" is successfully installed\n", pkg)
 	return nil
 }
 
@@ -111,7 +118,9 @@ func (cmd *installCmd) createBinsLinks(path string) error {
 		if !file.IsDir() && isExecutable(file.Mode()) {
 			exe := filepath.Join(path, file.Name())
 			sym := filepath.Join(cmd.config.BinPath(), file.Name())
-			fmt.Fprintf(cmd.out, "Symlink: %s -> %s\n", sym, exe)
+			if *cmd.option.verbose {
+				fmt.Fprintf(cmd.out, "Symlink: %s -> %s\n", sym, exe)
+			}
 			if err = os.Symlink(exe, sym); err != nil {
 				fmt.Fprintf(cmd.err, "Error! %s\n", err)
 				return ErrOperationFailed

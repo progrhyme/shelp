@@ -1,0 +1,26 @@
+# See http://goreleaser.com about this file
+before:
+  hooks:
+    - go mod download
+builds:
+- goos:
+  - linux
+  - darwin
+  goarch:
+  - amd64
+  env:
+  - CGO_ENABLED=0
+archives:
+- format: binary
+  replacements:
+    amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'

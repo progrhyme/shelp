@@ -10,6 +10,7 @@ import (
 
 type removeCmd struct {
 	commonCmd
+	name   string
 	option struct {
 		commonFlags
 	}
@@ -22,7 +23,6 @@ func newRemoveCmd(common commonCmd) removeCmd {
 
 	cmd.flags.SetOutput(cmd.err)
 	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
-	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 
@@ -31,19 +31,22 @@ func (cmd *removeCmd) usage() {
   Uninstall a package.
 
 Syntax:
-  %s remove <package>
+  %s %s <package>
 
 Examples:
-  %s remove bats-core
-  %s remove enhancd
+  %s %s bats-core
+  %s %s enhancd
 
 Options:
-`, cmd.command, cmd.command, cmd.command)
+`, cmd.command, cmd.name, cmd.command, cmd.name, cmd.command, cmd.name)
 	cmd.flags.PrintDefaults()
 }
 
 func (cmd *removeCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, true)
+	cmd.name = args[0]
+	cmd.flags.Usage = cmd.usage
+
+	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args[1:], true)
 	if done || err != nil {
 		return err
 	}

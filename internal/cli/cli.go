@@ -54,12 +54,12 @@ func (c *Cli) ParseAndExec(args []string) error {
 	}
 
 	switch args[1] {
-	case "install":
-		return installer.parseAndExec(args[2:])
+	case "install", "add":
+		return installer.parseAndExec(args[1:])
 	case "list":
 		return lister.parseAndExec(args[2:])
-	case "remove":
-		return remover.parseAndExec(args[2:])
+	case "remove", "uninstall":
+		return remover.parseAndExec(args[1:])
 	default:
 		return root.parseAndExec(args[1:])
 	}

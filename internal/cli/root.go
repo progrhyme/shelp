@@ -37,10 +37,12 @@ Usage:
   %s -v|--version
 
 Available Commands:
-  install  # Install a package
-  remove   # Uninstall a package
-  list     # List installed packages
-  destroy  # Delete all materials including packages
+  install    # Install a package
+  add        # Alias of "install"
+  remove     # Uninstall a package
+  uninstall  # Alias of "remove"
+  list       # List installed packages
+  destroy    # Delete all materials including packages
 
 Run "%s COMMAND -h|--help" to see usage of each command.
 

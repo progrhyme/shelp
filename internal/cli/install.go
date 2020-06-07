@@ -13,6 +13,7 @@ import (
 
 type installCmd struct {
 	commonCmd
+	name   string
 	git    git.Git
 	option struct {
 		verbose *bool
@@ -28,7 +29,6 @@ func newInstallCmd(common commonCmd, git git.Git) installCmd {
 	cmd.flags.SetOutput(cmd.err)
 	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "# Verbose output")
 	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
-	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 
@@ -37,19 +37,22 @@ func (cmd *installCmd) usage() {
   Install a repository in github.com as a %s package, assuming it contains shell scripts.
 
 Syntax:
-  %s install <account>/<repository>
+  %s %s <account>/<repository>
 
 Examples:
-  %s install bats-core/bats-core
-  %s install b4b4r07/enhancd
+  %s %s bats-core/bats-core
+  %s %s b4b4r07/enhancd
 
 Options:
-`, cmd.command, cmd.command, cmd.command, cmd.command)
+`, cmd.command, cmd.command, cmd.name, cmd.command, cmd.name, cmd.command, cmd.name)
 	cmd.flags.PrintDefaults()
 }
 
 func (cmd *installCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, true)
+	cmd.name = args[0]
+	cmd.flags.Usage = cmd.usage
+
+	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args[1:], true)
 	if done || err != nil {
 		return err
 	}

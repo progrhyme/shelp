@@ -45,6 +45,7 @@ func (c *Cli) ParseAndExec(args []string) error {
 
 	common := commonCmd{config: c.config, out: c.outWriter, err: c.errWriter, command: prog}
 	root := newRootCmd(common, c.version)
+	initializer := newInitCmd(common)
 	installer := newInstallCmd(common, c.git)
 	lister := newListCmd(common)
 	remover := newRemoveCmd(common)
@@ -56,6 +57,8 @@ func (c *Cli) ParseAndExec(args []string) error {
 	}
 
 	switch args[1] {
+	case "init":
+		return initializer.parseAndExec(args[2:])
 	case "install", "add":
 		return installer.parseAndExec(args[1:])
 	case "list":

@@ -37,6 +37,7 @@ Usage:
   %s -v|--version
 
 Available Commands:
+  init       # Initialize %s for shell environment
   install    # Install a package
   add        # Alias of "install"
   remove     # Uninstall a package
@@ -46,7 +47,7 @@ Available Commands:
 
 Run "%s COMMAND -h|--help" to see usage of each command.
 
-`, cmd.command, cmd.command, cmd.command, cmd.command, cmd.command)
+`, cmd.command, cmd.command, cmd.command, cmd.command, cmd.command, cmd.command)
 	fmt.Fprint(cmd.err, "Options without subcommand:\n")
 	cmd.flags.PrintDefaults()
 }

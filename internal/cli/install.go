@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"text/template"
 
 	"github.com/progrhyme/shelp/internal/git"
 	"github.com/spf13/pflag"
@@ -33,18 +34,22 @@ func newInstallCmd(common commonCmd, git git.Git) installCmd {
 }
 
 func (cmd *installCmd) usage() {
-	fmt.Fprintf(cmd.err, `Summary:
-  Install a repository in github.com as a %s package, assuming it contains shell scripts.
+	const help = `Summary:
+  Install a repository in github.com as a {{.Prog}} package, assuming it contains shell scripts.
 
 Syntax:
-  %s %s <account>/<repository>
+  {{.Prog}} {{.Cmd}} <account>/<repository>
 
 Examples:
-  %s %s bats-core/bats-core
-  %s %s b4b4r07/enhancd
+  {{.Prog}} {{.Cmd}} bats-core/bats-core
+  {{.Prog}} {{.Cmd}} b4b4r07/enhancd
 
 Options:
-`, cmd.command, cmd.command, cmd.name, cmd.command, cmd.name, cmd.command, cmd.name)
+`
+
+	t := template.Must(template.New("usage").Parse(help))
+	t.Execute(cmd.err, struct{ Prog, Cmd string }{cmd.command, cmd.name})
+
 	cmd.flags.PrintDefaults()
 }
 

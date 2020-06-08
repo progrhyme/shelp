@@ -84,7 +84,9 @@ func (flag *commonFlags) helpFlg() *bool {
 	return flag.help
 }
 
-func parseStartHelp(flags *pflag.FlagSet, option flagger, output io.Writer, args []string, requireArg bool) (bool, error) {
+func parseStartHelp(
+	flags *pflag.FlagSet, option flagger, output io.Writer, args []string, requireArg bool,
+) (bool, error) {
 	if requireArg && len(args) == 0 {
 		flags.Usage()
 		return true, ErrUsage

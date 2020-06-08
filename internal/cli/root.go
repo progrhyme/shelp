@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"text/template"
 
 	"github.com/spf13/pflag"
 )
@@ -28,16 +29,16 @@ func newRootCmd(common commonCmd, ver string) rootCmd {
 }
 
 func (cmd *rootCmd) usage() {
-	fmt.Fprintf(cmd.err, `Summary:
-  "%s" is a Git-based package manager for shell scripts written in Go.
+	const help = `Summary:
+  "{{.Prog}}" is a Git-based package manager for shell scripts written in Go.
 
 Usage:
-  %s COMMAND [arguments...] [options...]
-  %s -h|--help
-  %s -v|--version
+  {{.Prog}} COMMAND [arguments...] [options...]
+  {{.Prog}} -h|--help
+  {{.Prog}} -v|--version
 
 Available Commands:
-  init       # Initialize %s for shell environment
+  init       # Initialize {{.Prog}} for shell environment
   install    # Install a package
   add        # Alias of "install"
   remove     # Uninstall a package
@@ -45,10 +46,14 @@ Available Commands:
   list       # List installed packages
   destroy    # Delete all materials including packages
 
-Run "%s COMMAND -h|--help" to see usage of each command.
+Run "{{.Prog}} COMMAND -h|--help" to see usage of each command.
 
-`, cmd.command, cmd.command, cmd.command, cmd.command, cmd.command, cmd.command)
-	fmt.Fprint(cmd.err, "Options without subcommand:\n")
+Options without subcommand:
+`
+
+	t := template.Must(template.New("usage").Parse(help))
+	t.Execute(cmd.err, struct{ Prog string }{cmd.command})
+
 	cmd.flags.PrintDefaults()
 }
 

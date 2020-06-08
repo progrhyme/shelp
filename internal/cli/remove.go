@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/spf13/pflag"
 )
@@ -31,18 +32,22 @@ func newRemoveCmd(common commonCmd) removeCmd {
 }
 
 func (cmd *removeCmd) usage() {
-	fmt.Fprintf(cmd.err, `Summary:
+	const help = `Summary:
   Uninstall a package.
 
 Syntax:
-  %s %s <package>
+  {{.Prog}} {{.Cmd}} <package>
 
 Examples:
-  %s %s bats-core
-  %s %s enhancd
+  {{.Prog}} {{.Cmd}} bats-core
+  {{.Prog}} {{.Cmd}} enhancd
 
 Options:
-`, cmd.command, cmd.name, cmd.command, cmd.name, cmd.command, cmd.name)
+`
+
+	t := template.Must(template.New("usage").Parse(help))
+	t.Execute(cmd.err, struct{ Prog, Cmd string }{cmd.command, cmd.name})
+
 	cmd.flags.PrintDefaults()
 }
 

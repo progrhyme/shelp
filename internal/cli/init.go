@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"github.com/progrhyme/shelp/internal/config"
 	"github.com/spf13/pflag"
@@ -55,15 +56,15 @@ func shellProfile(shell string) string {
 }
 
 func (cmd *initCmd) usage() {
-	fmt.Fprintf(cmd.err, `Summary:
-  Enable %s in one's shell environment.
+	const help = `Summary:
+  Enable {{.Prog}} in one's shell environment.
 
 Usage:
-    %s init - [SHELL]  # Print scripts (for specified SHELL)
+    {{.Prog}} init - [SHELL]  # Print scripts (for specified SHELL)
 
-  To enable %s automatically in one's shell, append the following to %s:
+  To enable {{.Prog}} automatically in one's shell, append the following to {{.Profile}}:
 
-    eval "$(%s init -)"
+    eval "$({{.Prog}} init -)"
 
   It prints scripts for current shell unless user specify SHELL argument.
 
@@ -71,7 +72,11 @@ Limitation:
   Only POSIX compatible shells are supported for now.
 
 Options:
-`, cmd.command, cmd.command, cmd.command, cmd.shProf, cmd.command)
+`
+
+	t := template.Must(template.New("usage").Parse(help))
+	t.Execute(cmd.err, struct{ Prog, Profile string }{cmd.command, cmd.shProf})
+
 	cmd.flags.PrintDefaults()
 }
 
@@ -108,9 +113,8 @@ func (cmd *initCmd) resetShell() {
 }
 
 func (cmd *initCmd) printInitShellScripts(out io.Writer) {
-	fmt.Fprintf(
-		out, `export %s="%s"
-PATH="%s:${PATH}"
+	const script = `export <<.RootPathKey>>="<<.RootPath>>"
+PATH="<<.BinPath>>:${PATH}"
 
 # Load script in a package
 include() {
@@ -123,22 +127,25 @@ include() {
     return 1
   fi
 
-  if [ ! -e "${%s}/packages/${_package}" ]; then
+  if [ ! -e "${<<.RootPathKey>>}/packages/${_package}" ]; then
     echo "Package not installed: ${_package}" >&2
     unset _package _file
     return 1
   fi
 
-  if [ -e "${%s}/packages/${_package}/${_file}" ]; then
-    . "${%s}/packages/${_package}/${_file}" >&2
+  if [ -e "${<<.RootPathKey>>}/packages/${_package}/${_file}" ]; then
+    . "${<<.RootPathKey>>}/packages/${_package}/${_file}" >&2
     unset _package _file
   else
-    echo "File not found: ${%s}/packages/${_package}/${_file}" >&2
+    echo "File not found: ${<<.RootPathKey>>}/packages/${_package}/${_file}" >&2
     unset _package _file
     return 1
   fi
 }
-`,
-		config.RootVarName, cmd.config.RootPath(), cmd.config.BinPath(),
-		config.RootVarName, config.RootVarName, config.RootVarName, config.RootVarName)
+`
+
+	params := struct{ RootPathKey, RootPath, BinPath string }{
+		config.RootVarName, cmd.config.RootPath(), cmd.config.BinPath()}
+	t := template.Must(template.New("script").Delims("<<", ">>").Parse(script))
+	t.Execute(out, params)
 }

@@ -105,13 +105,15 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	}
 
 	binPath := filepath.Join(pkgPath, "bin")
+	var linkErr error
 	if _, err := os.Stat(binPath); err == nil {
-		err = cmd.createBinsLinks(binPath)
+		linkErr = cmd.createBinsLinks(binPath)
 	} else {
-		err = cmd.createBinsLinks(pkgPath)
+		linkErr = cmd.createBinsLinks(pkgPath)
 	}
-	if err != nil {
-		return err
+	if linkErr != nil {
+		fmt.Fprintf(cmd.err, "\"%s\" is installed, but with some failures\n", pkg)
+		return linkErr
 	}
 
 	fmt.Fprintf(cmd.out, "\"%s\" is successfully installed\n", pkg)
@@ -132,6 +134,7 @@ func (cmd *installCmd) createBinsLinks(path string) error {
 		return ErrOperationFailed
 	}
 
+	var warn bool
 	for _, file := range files {
 		if !file.IsDir() && isExecutable(file.Mode()) {
 			exe := filepath.Join(path, file.Name())
@@ -139,11 +142,19 @@ func (cmd *installCmd) createBinsLinks(path string) error {
 			if *cmd.option.verbose {
 				fmt.Fprintf(cmd.out, "Symlink: %s -> %s\n", sym, exe)
 			}
+			if _, err := os.Stat(sym); !os.IsNotExist(err) {
+				fmt.Fprintf(cmd.err, "Warning! Can't create link of %s which already exists\n", exe)
+				warn = true
+				continue
+			}
 			if err = os.Symlink(exe, sym); err != nil {
 				fmt.Fprintf(cmd.err, "Error! %s\n", err)
 				return ErrOperationFailed
 			}
 		}
+	}
+	if warn {
+		return ErrWarning
 	}
 
 	return nil

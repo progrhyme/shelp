@@ -21,6 +21,7 @@ func TestParseAndExecAll(t *testing.T) {
 	cfg := config.NewConfig()
 
 	// Variables as test parameters or expected outputs
+	validPkgRepo := "bats-core/bats-core"
 	invalidFlg := "--no-such-option"
 	flagError := fmt.Sprintf("Error! unknown flag: %s", invalidFlg)
 
@@ -134,6 +135,11 @@ PATH="%s:${PATH}"
 			[]string{prog, "install", "invalid-repo-specifier"},
 			ErrArgument, "",
 			strings.Join([]string{"Error! Given argument \"invalid-repo-specifier\" does not look like valid repository", commands["install"].helpText}, "\n"),
+		},
+		{
+			[]string{prog, "install", validPkgRepo, "-"},
+			ErrArgument, "",
+			"Error! Given argument \"-\" does not look like valid package name\n",
 		},
 
 		// Subcommand "remove"

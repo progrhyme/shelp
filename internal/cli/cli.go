@@ -18,6 +18,7 @@ var (
 	ErrCommandFailed   = errors.New("Command execution failed")
 	ErrOperationFailed = errors.New("Operation failed")
 	ErrCanceled        = errors.New("Operation is canceled")
+	ErrWarning         = errors.New("Warning")
 )
 
 type Cli struct {

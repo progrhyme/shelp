@@ -38,11 +38,11 @@ func (cmd *installCmd) usage() {
   Install a repository in github.com as a {{.Prog}} package, assuming it contains shell scripts.
 
 Syntax:
-  {{.Prog}} {{.Cmd}} <account>/<repository>
+  {{.Prog}} {{.Cmd}} <account>/<repository> [<package-name>]
 
 Examples:
-  {{.Prog}} {{.Cmd}} bats-core/bats-core
-  {{.Prog}} {{.Cmd}} b4b4r07/enhancd
+  {{.Prog}} {{.Cmd}} bats-core/bats-core bats  # Install as "bats"
+  {{.Prog}} {{.Cmd}} b4b4r07/enhancd           # Install as "enhancd"
 
 Options:
 `
@@ -77,7 +77,20 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 		return ErrOperationFailed
 	}
 
-	pkg := filepath.Base(cmd.flags.Arg(0))
+	var pkg string
+	if cmd.flags.NArg() > 1 {
+		re = regexp.MustCompile(`^\w+`)
+		if !re.MatchString(cmd.flags.Arg(1)) {
+			fmt.Fprintf(
+				cmd.err,
+				"Error! Given argument \"%s\" does not look like valid package name\n",
+				cmd.flags.Arg(1))
+			return ErrArgument
+		}
+		pkg = cmd.flags.Arg(1)
+	} else {
+		pkg = filepath.Base(cmd.flags.Arg(0))
+	}
 	pkgPath := filepath.Join(cmd.config.PackagePath(), pkg)
 	if _, err := os.Stat(pkgPath); !os.IsNotExist(err) {
 		fmt.Fprintf(cmd.err, "\"%s\" is already installed\n", pkg)

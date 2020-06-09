@@ -1,6 +1,9 @@
-.PHONY: release version
+.PHONY: test release version
 
 VERSION := $(shell go run *.go -v | awk '{print $$2}')
+
+test:
+	go test -v ./...
 
 release: version
 	docker run --rm --privileged \

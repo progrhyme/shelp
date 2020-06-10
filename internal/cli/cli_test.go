@@ -30,6 +30,7 @@ func TestParseAndExecAll(t *testing.T) {
 		helpText   string
 	}
 	commands := make(map[string]command)
+
 	commands["root"] = command{
 		false,
 		fmt.Sprintf(`Summary:
@@ -37,6 +38,7 @@ func TestParseAndExecAll(t *testing.T) {
 
 Usage:`, prog),
 	}
+
 	commands["init"] = command{
 		true,
 		fmt.Sprintf(`Summary:
@@ -44,6 +46,7 @@ Usage:`, prog),
 
 Usage:`, prog),
 	}
+
 	commands["install"] = command{
 		true,
 		fmt.Sprintf(`Summary:
@@ -51,6 +54,7 @@ Usage:`, prog),
 
 Syntax:`, prog),
 	}
+
 	commands["remove"] = command{
 		true,
 		`Summary:
@@ -58,6 +62,7 @@ Syntax:`, prog),
 
 Syntax:`,
 	}
+
 	commands["list"] = command{
 		false,
 		`Summary:
@@ -65,6 +70,15 @@ Syntax:`,
 
 Syntax:`,
 	}
+
+	commands["upgrade"] = command{
+		true,
+		`Summary:
+  Upgrade an installed package.
+
+Syntax:`,
+	}
+
 	commands["destroy"] = command{
 		false,
 		fmt.Sprintf(`Summary:
@@ -158,6 +172,26 @@ PATH="%s:${PATH}"
 		},
 		{
 			[]string{prog, "remove", "not-installed-package"},
+			ErrArgument, "",
+			"\"not-installed-package\" is not installed",
+		},
+
+		// Subcommand "upgrade"
+		{
+			[]string{prog, "upgrade"},
+			ErrUsage, "", commands["upgrade"].helpText,
+		},
+		{
+			[]string{prog, "upgrade", "--help"},
+			nil, "", commands["upgrade"].helpText,
+		},
+		{
+			[]string{prog, "upgrade", "--no-such-option"},
+			ErrParseFailed, "",
+			strings.Join([]string{flagError, commands["upgrade"].helpText}, "\n"),
+		},
+		{
+			[]string{prog, "upgrade", "not-installed-package"},
 			ErrArgument, "",
 			"\"not-installed-package\" is not installed",
 		},

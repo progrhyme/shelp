@@ -28,17 +28,37 @@ func (g *Git) Clone(src, dst string, verbose bool) error {
 	if g.shallow {
 		args = append(args, "--depth=1")
 	}
-	cmd := exec.Command(g.cmd, args...)
-	if verbose {
-		cmd.Stdout = g.out
-		cmd.Stderr = g.err
-	} else {
-		cmd.Stdout = ioutil.Discard
-		cmd.Stderr = ioutil.Discard
-	}
+	return g.prepareCommand(args, verbose).Run()
+}
+
+func (g *Git) Pull(verbose bool) error {
+	// NOTE: "shallow" option for Pull operation is incomplete.
+	//  It happens to cause merge conflicts.
+	//if g.shallow {
+	//	cmd := g.prepareCommand([]string{"fetch", "--depth=1"}, verbose)
+	//	if err := cmd.Run(); err != nil {
+	//		return err
+	//	}
+	//}
+	cmd := exec.Command(g.cmd, []string{"pull"}...)
+	cmd.Stdout = g.out
+	cmd.Stderr = g.err
 	if verbose {
 		fmt.Fprintln(cmd.Stdout, cmd.String())
 	}
 
 	return cmd.Run()
+}
+
+func (g *Git) prepareCommand(args []string, verbose bool) *exec.Cmd {
+	cmd := exec.Command(g.cmd, args...)
+	if verbose {
+		cmd.Stdout = g.out
+		cmd.Stderr = g.err
+		fmt.Fprintln(cmd.Stdout, cmd.String())
+	} else {
+		cmd.Stdout = ioutil.Discard
+		cmd.Stderr = ioutil.Discard
+	}
+	return cmd
 }

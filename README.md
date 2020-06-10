@@ -27,7 +27,7 @@ Let's see typical commands to achieve this:
 
 ```sh
 bin=/usr/local/bin  # Change to your favorite path
-version=0.1.0       # Make sure this is the latest
+version=0.2.0       # Make sure this is the latest
 os=darwin           # or "linux" is supported
 curl -Lo $bin/shelp "https://github.com/progrhyme/shelp/releases/download/v${version}/shelp_${version}_${os}_x86_64"
 chmod +x $bin/shelp
@@ -60,19 +60,19 @@ The default value is `~/.shelp`.
 
 Limitation:
 
-- In shelp v0.1.0, only installation from github.com via https scheme is supported.
+- In shelp v0.2.0, only installation from github.com via https scheme is supported.
 
 Command Syntax:
 
 ```sh
-shelp install <account>/<repository>
+shelp install <account>/<repository> [<package>]
 ```
 
 For example, the following command installs https://github.com/bats-core/bats-core
-into `$SHELP_ROOT/packages/bats-core` directory.
+into `$SHELP_ROOT/packages/bats` directory.
 
 ```sh
-shelp install bats-core/bats-core
+shelp install bats-core/bats-core bats
 ```
 
 Then, you can run `bats` command in the package.
@@ -114,6 +114,7 @@ shelp add        # Alias of "install"
 shelp remove     # Uninstall a package
 shelp uninstall  # Alias of "remove"
 shelp list       # List installed packages
+shelp upgrade    # Upgrade an installed package
 shelp destroy    # Delete all materials including packages
 ```
 

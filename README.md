@@ -1,3 +1,5 @@
+![go-test](https://github.com/progrhyme/shelp/workflows/go-test/badge.svg)
+
 # shelp
 
 `shelp` is a Git-based package manager for shell scripts written in Go.

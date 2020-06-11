@@ -46,12 +46,6 @@ func (c *Cli) ParseAndExec(args []string) error {
 
 	common := commonCmd{config: c.config, out: c.outWriter, err: c.errWriter, command: prog}
 	root := newRootCmd(common, c.version)
-	initializer := newInitCmd(common)
-	installer := newInstallCmd(common, c.git)
-	lister := newListCmd(common)
-	remover := newRemoveCmd(common)
-	upgrader := newUpgradeCmd(common, c.git)
-	destroyer := newDestroyCmd(common)
 
 	if len(args) == 1 {
 		root.flags.Usage()
@@ -60,16 +54,22 @@ func (c *Cli) ParseAndExec(args []string) error {
 
 	switch args[1] {
 	case "init":
+		initializer := newInitCmd(common)
 		return initializer.parseAndExec(args[2:])
 	case "install", "add":
+		installer := newInstallCmd(common, c.git)
 		return installer.parseAndExec(args[1:])
 	case "list":
+		lister := newListCmd(common)
 		return lister.parseAndExec(args[2:])
 	case "remove", "uninstall":
+		remover := newRemoveCmd(common)
 		return remover.parseAndExec(args[1:])
 	case "upgrade":
+		upgrader := newUpgradeCmd(common, c.git)
 		return upgrader.parseAndExec(args[2:])
 	case "destroy":
+		destroyer := newDestroyCmd(common)
 		return destroyer.parseAndExec(args[2:])
 	default:
 		return root.parseAndExec(args[1:])

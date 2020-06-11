@@ -11,12 +11,7 @@ import (
 )
 
 type linkCmd struct {
-	commonCmd
-	option verboseFlags
-}
-
-func (cmd *linkCmd) getOpts() verboseFlagger {
-	return &cmd.option
+	verboseCmd
 }
 
 func newLinkCmd(common commonCmd) linkCmd {
@@ -55,7 +50,7 @@ Options:
 }
 
 func (cmd *linkCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, true)
+	done, err := parseStartHelp(cmd, args, true)
 	if done || err != nil {
 		return err
 	}

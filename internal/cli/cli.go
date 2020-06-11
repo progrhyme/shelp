@@ -8,7 +8,6 @@ import (
 
 	"github.com/progrhyme/shelp/internal/config"
 	"github.com/progrhyme/shelp/internal/git"
-	"github.com/spf13/pflag"
 )
 
 var (
@@ -71,28 +70,26 @@ func (c *Cli) ParseAndExec(args []string) error {
 	}
 }
 
-func parseStartHelp(
-	flags *pflag.FlagSet, option flagger, output io.Writer, args []string, requireArg bool,
-) (bool, error) {
+func parseStartHelp(cmd helpCommander, args []string, requireArg bool) (bool, error) {
 	if requireArg && len(args) == 0 {
-		flags.Usage()
+		cmd.flagset().Usage()
 		return true, ErrUsage
 	}
 
-	err := flags.Parse(args)
+	err := cmd.flagset().Parse(args)
 	if err != nil {
-		fmt.Fprintf(output, "Error! %s\n", err)
-		flags.Usage()
+		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
+		cmd.flagset().Usage()
 		return true, ErrParseFailed
 	}
 
-	if *option.helpFlg() {
-		flags.Usage()
+	if *cmd.getOpts().helpFlg() {
+		cmd.flagset().Usage()
 		return true, nil
 	}
 
-	if requireArg && flags.NArg() == 0 {
-		flags.Usage()
+	if requireArg && cmd.flagset().NArg() == 0 {
+		cmd.flagset().Usage()
 		return true, ErrUsage
 	}
 

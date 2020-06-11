@@ -18,6 +18,10 @@ type destroyCmd struct {
 	}
 }
 
+func (cmd *destroyCmd) getOpts() flagger {
+	return &cmd.option
+}
+
 func newDestroyCmd(common commonCmd) destroyCmd {
 	cmd := &destroyCmd{}
 	cmd.commonCmd = common
@@ -43,7 +47,7 @@ Options:
 }
 
 func (cmd *destroyCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, false)
+	done, err := parseStartHelp(cmd, args, false)
 	if done || err != nil {
 		return err
 	}

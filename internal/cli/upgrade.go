@@ -11,12 +11,8 @@ import (
 )
 
 type upgradeCmd struct {
-	commonCmd
-	git    git.Git
-	option struct {
-		verbose *bool
-		commonFlags
-	}
+	verboseCmd
+	git git.Git
 }
 
 func newUpgradeCmd(common commonCmd, git git.Git) upgradeCmd {
@@ -52,7 +48,7 @@ Options:
 }
 
 func (cmd *upgradeCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, true)
+	done, err := parseStartHelp(cmd, args, true)
 	if done || err != nil {
 		return err
 	}

@@ -16,6 +16,10 @@ type rootCmd struct {
 	}
 }
 
+func (cmd *rootCmd) getOpts() flagger {
+	return &cmd.option
+}
+
 func newRootCmd(common commonCmd, ver string) rootCmd {
 	cmd := &rootCmd{version: ver}
 	cmd.commonCmd = common
@@ -60,7 +64,7 @@ Options without subcommand:
 }
 
 func (cmd *rootCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, false)
+	done, err := parseStartHelp(cmd, args, false)
 	if done || err != nil {
 		return err
 	}

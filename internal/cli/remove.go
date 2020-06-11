@@ -12,12 +12,8 @@ import (
 )
 
 type removeCmd struct {
-	commonCmd
-	name   string
-	option struct {
-		verbose *bool
-		commonFlags
-	}
+	verboseCmd
+	name string
 }
 
 func newRemoveCmd(common commonCmd) removeCmd {
@@ -55,7 +51,7 @@ func (cmd *removeCmd) parseAndExec(args []string) error {
 	cmd.name = args[0]
 	cmd.flags.Usage = cmd.usage
 
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args[1:], true)
+	done, err := parseStartHelp(cmd, args[1:], true)
 	if done || err != nil {
 		return err
 	}

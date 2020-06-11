@@ -14,14 +14,9 @@ import (
 )
 
 type installCmd struct {
-	commonCmd
-	name   string
-	git    git.Git
-	option verboseFlags
-}
-
-func (cmd *installCmd) getOpts() verboseFlagger {
-	return &cmd.option
+	verboseCmd
+	name string
+	git  git.Git
 }
 
 func newInstallCmd(common commonCmd, git git.Git) installCmd {
@@ -63,7 +58,7 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	cmd.name = args[0]
 	cmd.flags.Usage = cmd.usage
 
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args[1:], true)
+	done, err := parseStartHelp(cmd, args[1:], true)
 	if done || err != nil {
 		return err
 	}
@@ -154,7 +149,7 @@ func createBinsLinks(cmd verboseCommander, path string) error {
 		if !file.IsDir() && isExecutable(file.Mode()) {
 			exe := filepath.Join(path, file.Name())
 			sym := filepath.Join(cmd.getConf().BinPath(), file.Name())
-			if *cmd.getOpts().verboseFlg() {
+			if *cmd.verboseOpts().verboseFlg() {
 				fmt.Fprintf(cmd.outs(), "Symlink: %s -> %s\n", sym, exe)
 			}
 			if _, err := os.Stat(sym); !os.IsNotExist(err) {

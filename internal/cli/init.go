@@ -12,12 +12,9 @@ import (
 )
 
 type initCmd struct {
-	commonCmd
+	helpCmd
 	shell  string
 	shProf string
-	option struct {
-		commonFlags
-	}
 }
 
 func newInitCmd(common commonCmd) initCmd {
@@ -81,7 +78,7 @@ Options:
 }
 
 func (cmd *initCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, true)
+	done, err := parseStartHelp(cmd, args, true)
 	if done || err != nil {
 		return err
 	}

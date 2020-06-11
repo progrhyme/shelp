@@ -35,14 +35,18 @@ func newInstallCmd(common commonCmd, git git.Git) installCmd {
 
 func (cmd *installCmd) usage() {
 	const help = `Summary:
-  Install a repository in github.com as a {{.Prog}} package, assuming it contains shell scripts.
+  Install a repository from HTTPS site as a {{.Prog}} package, assuming it contains shell scripts.
 
 Syntax:
-  {{.Prog}} {{.Cmd}} <account>/<repository> [<package-name>]
+  {{.Prog}} {{.Cmd}} [<site>/]<account>/<repository>[@<branch>] [<package-name>]
+
+If you ommit preceding "<site>/" specifier, "github.com" is used by default.
 
 Examples:
+  {{.Prog}} {{.Cmd}} b4b4r07/enhancd           # Install "enhancd" from github.com
+  {{.Prog}} {{.Cmd}} b4b4r07/enhancd@v2.2.4    # Install specified tag or branch
   {{.Prog}} {{.Cmd}} bats-core/bats-core bats  # Install as "bats"
-  {{.Prog}} {{.Cmd}} b4b4r07/enhancd           # Install as "enhancd"
+  {{.Prog}} {{.Cmd}} gitlab.com/dwt1/dotfiles  # Install from gitlab.com
 
 Options:
 `
@@ -62,7 +66,7 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 		return err
 	}
 
-	re := regexp.MustCompile(`\w+/\w+`)
+	re := regexp.MustCompile(`(?:([\w\-\.]+)/)?([\w\-\.]+)/([\w\-\.]+)(?:@([\w\-\.]+))?`)
 	if !re.MatchString(cmd.flags.Arg(0)) {
 		fmt.Fprintf(
 			cmd.err,
@@ -71,6 +75,15 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 		cmd.flags.Usage()
 		return ErrArgument
 	}
+
+	matched := re.FindStringSubmatch(cmd.flags.Arg(0))
+	site := matched[1]
+	if site == "" {
+		site = "github.com"
+	}
+	account := matched[2]
+	repo := matched[3]
+	branch := matched[4]
 
 	if err = cmd.prepareInstallDirectories(); err != nil {
 		fmt.Fprintf(cmd.err, "Error! %s\n", err)
@@ -89,7 +102,7 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 		}
 		pkg = cmd.flags.Arg(1)
 	} else {
-		pkg = filepath.Base(cmd.flags.Arg(0))
+		pkg = repo
 	}
 	pkgPath := filepath.Join(cmd.config.PackagePath(), pkg)
 	if _, err := os.Stat(pkgPath); !os.IsNotExist(err) {
@@ -97,9 +110,9 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 		return ErrArgument
 	}
 
-	url := fmt.Sprintf("https://github.com/%s.git", cmd.flags.Arg(0))
+	url := fmt.Sprintf("https://%s/%s/%s.git", site, account, repo)
 	fmt.Fprintf(cmd.out, "Fetching \"%s\" from %s ...\n", pkg, url)
-	err = cmd.git.Clone(url, pkgPath, *cmd.option.verbose)
+	err = cmd.git.Clone(url, pkgPath, branch, *cmd.option.verbose)
 	if err != nil {
 		return ErrCommandFailed
 	}

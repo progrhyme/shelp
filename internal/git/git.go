@@ -23,11 +23,15 @@ func NewGit(out, err io.Writer) Git {
 	return Git{cmd: cmd, out: out, err: err, shallow: true}
 }
 
-func (g *Git) Clone(src, dst string, verbose bool) error {
-	args := []string{"clone", src, dst}
+func (g *Git) Clone(src, dst string, branch string, verbose bool) error {
+	args := []string{"clone", src}
+	if branch != "" {
+		args = append(args, fmt.Sprintf("--branch=%s", branch))
+	}
 	if g.shallow {
 		args = append(args, "--depth=1")
 	}
+	args = append(args, dst)
 	return g.prepareCommand(args, verbose).Run()
 }
 

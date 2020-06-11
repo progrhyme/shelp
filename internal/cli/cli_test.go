@@ -50,7 +50,7 @@ Usage:`, prog),
 	commands["install"] = command{
 		true,
 		fmt.Sprintf(`Summary:
-  Install a repository in github.com as a %s package, assuming it contains shell scripts.
+  Install a repository from HTTPS site as a %s package, assuming it contains shell scripts.
 
 Syntax:`, prog),
 	}

@@ -79,6 +79,15 @@ Syntax:`,
 Syntax:`,
 	}
 
+	commands["link"] = command{
+		true,
+		`Summary:
+  Pseudo installation of a package from local filesystem.
+  Creates symbolic link of a directory into a package path.
+
+Syntax:`,
+	}
+
 	commands["destroy"] = command{
 		false,
 		fmt.Sprintf(`Summary:
@@ -209,6 +218,31 @@ PATH="%s:${PATH}"
 			[]string{prog, "list", "--no-such-option"},
 			ErrParseFailed, "",
 			strings.Join([]string{flagError, commands["list"].helpText}, "\n"),
+		},
+
+		// Subcommand "link"
+		{
+			[]string{prog, "link"},
+			ErrUsage, "", commands["link"].helpText,
+		},
+		{
+			[]string{prog, "link", "--help"},
+			nil, "", commands["link"].helpText,
+		},
+		{
+			[]string{prog, "link", "--no-such-option"},
+			ErrParseFailed, "",
+			strings.Join([]string{flagError, commands["link"].helpText}, "\n"),
+		},
+		{
+			[]string{prog, "link", "no/such/file/or/directory"},
+			ErrArgument, "",
+			"Error! \"no/such/file/or/directory\" does not exist\n",
+		},
+		{
+			[]string{prog, "link", ".", "-"},
+			ErrArgument, "",
+			"Error! Given argument \"-\" does not look like valid package name\n",
 		},
 
 		// Subcommand "destroy"

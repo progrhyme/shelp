@@ -29,14 +29,6 @@ type Cli struct {
 	errWriter io.Writer
 }
 
-type commonCmd struct {
-	config  config.Config
-	flags   pflag.FlagSet
-	out     io.Writer
-	err     io.Writer
-	command string
-}
-
 func NewCli(ver string, cfg config.Config, g git.Git, out, err io.Writer) Cli {
 	return Cli{version: ver, config: cfg, git: g, outWriter: out, errWriter: err}
 }
@@ -68,24 +60,15 @@ func (c *Cli) ParseAndExec(args []string) error {
 	case "upgrade":
 		upgrader := newUpgradeCmd(common, c.git)
 		return upgrader.parseAndExec(args[2:])
+	case "link":
+		linker := newLinkCmd(common)
+		return linker.parseAndExec(args[2:])
 	case "destroy":
 		destroyer := newDestroyCmd(common)
 		return destroyer.parseAndExec(args[2:])
 	default:
 		return root.parseAndExec(args[1:])
 	}
-}
-
-type flagger interface {
-	helpFlg() *bool
-}
-
-type commonFlags struct {
-	help *bool
-}
-
-func (flag *commonFlags) helpFlg() *bool {
-	return flag.help
 }
 
 func parseStartHelp(

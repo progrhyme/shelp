@@ -45,6 +45,7 @@ Available Commands:
   uninstall  # Alias of "remove"
   list       # List installed packages
   upgrade    # Upgrade an installed package
+  link       # Pseudo installation of local directory
   destroy    # Delete all materials including packages
 
 Run "{{.Prog}} COMMAND -h|--help" to see usage of each command.

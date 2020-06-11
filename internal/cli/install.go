@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"text/template"
 
+	"github.com/progrhyme/shelp/internal/config"
 	"github.com/progrhyme/shelp/internal/git"
 	"github.com/spf13/pflag"
 )
@@ -16,10 +17,11 @@ type installCmd struct {
 	commonCmd
 	name   string
 	git    git.Git
-	option struct {
-		verbose *bool
-		commonFlags
-	}
+	option verboseFlags
+}
+
+func (cmd *installCmd) getOpts() verboseFlagger {
+	return &cmd.option
 }
 
 func newInstallCmd(common commonCmd, git git.Git) installCmd {
@@ -85,7 +87,7 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	repo := matched[3]
 	branch := matched[4]
 
-	if err = cmd.prepareInstallDirectories(); err != nil {
+	if err = prepareInstallDirectories(cmd.config); err != nil {
 		fmt.Fprintf(cmd.err, "Error! %s\n", err)
 		return ErrOperationFailed
 	}
@@ -120,9 +122,9 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	binPath := filepath.Join(pkgPath, "bin")
 	var linkErr error
 	if _, err := os.Stat(binPath); err == nil {
-		linkErr = cmd.createBinsLinks(binPath)
+		linkErr = createBinsLinks(cmd, binPath)
 	} else {
-		linkErr = cmd.createBinsLinks(pkgPath)
+		linkErr = createBinsLinks(cmd, pkgPath)
 	}
 	if linkErr != nil {
 		fmt.Fprintf(cmd.err, "\"%s\" is installed, but with some failures\n", pkg)
@@ -133,17 +135,17 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	return nil
 }
 
-func (cmd *installCmd) prepareInstallDirectories() error {
-	if err := os.MkdirAll(cmd.config.PackagePath(), 0755); err != nil {
+func prepareInstallDirectories(cfg config.Config) error {
+	if err := os.MkdirAll(cfg.PackagePath(), 0755); err != nil {
 		return err
 	}
-	return os.MkdirAll(cmd.config.BinPath(), 0755)
+	return os.MkdirAll(cfg.BinPath(), 0755)
 }
 
-func (cmd *installCmd) createBinsLinks(path string) error {
+func createBinsLinks(cmd verboseCommander, path string) error {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
+		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
 		return ErrOperationFailed
 	}
 
@@ -151,17 +153,17 @@ func (cmd *installCmd) createBinsLinks(path string) error {
 	for _, file := range files {
 		if !file.IsDir() && isExecutable(file.Mode()) {
 			exe := filepath.Join(path, file.Name())
-			sym := filepath.Join(cmd.config.BinPath(), file.Name())
-			if *cmd.option.verbose {
-				fmt.Fprintf(cmd.out, "Symlink: %s -> %s\n", sym, exe)
+			sym := filepath.Join(cmd.getConf().BinPath(), file.Name())
+			if *cmd.getOpts().verboseFlg() {
+				fmt.Fprintf(cmd.outs(), "Symlink: %s -> %s\n", sym, exe)
 			}
 			if _, err := os.Stat(sym); !os.IsNotExist(err) {
-				fmt.Fprintf(cmd.err, "Warning! Can't create link of %s which already exists\n", exe)
+				fmt.Fprintf(cmd.errs(), "Warning! Can't create link of %s which already exists\n", exe)
 				warn = true
 				continue
 			}
 			if err = os.Symlink(exe, sym); err != nil {
-				fmt.Fprintf(cmd.err, "Error! %s\n", err)
+				fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
 				return ErrOperationFailed
 			}
 		}

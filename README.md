@@ -27,7 +27,7 @@ Let's see typical commands to achieve this:
 
 ```sh
 bin=/usr/local/bin  # Change to your favorite path
-version=0.2.0       # Make sure this is the latest
+version=0.3.0       # Make sure this is the latest
 os=darwin           # or "linux" is supported
 curl -Lo $bin/shelp "https://github.com/progrhyme/shelp/releases/download/v${version}/shelp_${version}_${os}_x86_64"
 chmod +x $bin/shelp
@@ -60,12 +60,12 @@ The default value is `~/.shelp`.
 
 Limitation:
 
-- In shelp v0.2.0, only installation from github.com via https scheme is supported.
+- In shelp v0.3.0, only installation via https scheme is supported.
 
 Command Syntax:
 
 ```sh
-shelp install <account>/<repository> [<package>]
+shelp install [<site>/]<account>/<repository>[@<branch>] [<package>]
 ```
 
 For example, the following command installs https://github.com/bats-core/bats-core
@@ -76,6 +76,14 @@ shelp install bats-core/bats-core bats
 ```
 
 Then, you can run `bats` command in the package.
+
+Other Examples:
+
+```sh
+shelp install b4b4r07/enhancd           # Install "enhancd" from github.com
+shelp install b4b4r07/enhancd@v2.2.4    # Install specified tag or branch
+shelp install gitlab.com/dwt1/dotfiles  # Install from gitlab.com
+```
 
 ## Shell Function
 
@@ -115,12 +123,21 @@ shelp remove     # Uninstall a package
 shelp uninstall  # Alias of "remove"
 shelp list       # List installed packages
 shelp upgrade    # Upgrade an installed package
+shelp link       # Pseudo installation of local directory
 shelp destroy    # Delete all materials including packages
 ```
 
 # Alternatives
 
-- [basherpm/basher](https://github.com/basherpm/basher)
+There are othere tools to manage shell scripts in modular way.  
+Pick up some of them here.
+
+ Software | Supported Shells
+----------|------------------
+ [basherpm/basher](https://github.com/basherpm/basher) | Bash, Zsh, fish shell
+ [zplug](https://github.com/zplug/zplug) | Zsh
+ [bpkg](https://www.bpkg.sh/) | Bash
+ [jorgebucaran/fisher](https://github.com/jorgebucaran/fisher) | fish shell
 
 # Special Thanks
 

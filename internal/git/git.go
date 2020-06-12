@@ -23,7 +23,7 @@ func NewGit(out, err io.Writer) Git {
 	return Git{cmd: cmd, out: out, err: err, shallow: true}
 }
 
-func (g *Git) Clone(src, dst string, branch string, verbose bool) error {
+func (g *Git) Clone(src, dst, branch string, verbose bool) error {
 	args := []string{"clone", src}
 	if branch != "" {
 		args = append(args, fmt.Sprintf("--branch=%s", branch))
@@ -48,7 +48,7 @@ func (g *Git) Pull(verbose bool) error {
 	cmd.Stdout = g.out
 	cmd.Stderr = g.err
 	if verbose {
-		fmt.Fprintln(cmd.Stdout, cmd.String())
+		fmt.Fprintf(g.err, "[CMD] %s\n", cmd.String())
 	}
 
 	return cmd.Run()
@@ -59,7 +59,7 @@ func (g *Git) prepareCommand(args []string, verbose bool) *exec.Cmd {
 	if verbose {
 		cmd.Stdout = g.out
 		cmd.Stderr = g.err
-		fmt.Fprintln(cmd.Stdout, cmd.String())
+		fmt.Fprintf(g.err, "[CMD] %s\n", cmd.String())
 	} else {
 		cmd.Stdout = ioutil.Discard
 		cmd.Stderr = ioutil.Discard

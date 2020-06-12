@@ -88,7 +88,7 @@ func (cmd *removeCmd) removeBinsLinks(pkgPath string) error {
 		sym := filepath.Join(binPath, bin.Name())
 		src, err := os.Readlink(sym)
 		if err != nil {
-			fmt.Fprintf(cmd.err, "Warning! Failed to read link of %s. Error = %s\n", src, err)
+			fmt.Fprintf(cmd.err, "Warning! Failed to read link of %s. Error = %s\n", sym, err)
 			continue
 		}
 		if strings.HasPrefix(src, pkgPath) {

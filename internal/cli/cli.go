@@ -59,6 +59,9 @@ func (c *Cli) ParseAndExec(args []string) error {
 	case "upgrade":
 		upgrader := newUpgradeCmd(common, c.git)
 		return upgrader.parseAndExec(args[2:])
+	case "outdated":
+		lister := newOutdatedCmd(common, c.git)
+		return lister.parseAndExec(args[2:])
 	case "link":
 		linker := newLinkCmd(common)
 		return linker.parseAndExec(args[2:])

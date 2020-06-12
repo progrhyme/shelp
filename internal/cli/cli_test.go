@@ -79,6 +79,14 @@ Syntax:`,
 Syntax:`,
 	}
 
+	commands["outdated"] = command{
+		true,
+		`Summary:
+  Show installed packages which can be updated.
+
+Syntax:`,
+	}
+
 	commands["link"] = command{
 		true,
 		`Summary:
@@ -203,6 +211,21 @@ PATH="%s:${PATH}"
 			[]string{prog, "upgrade", "not-installed-package"},
 			ErrArgument, "",
 			"\"not-installed-package\" is not installed",
+		},
+
+		// Subcommand "outdated"
+		{
+			[]string{prog, "outdated"},
+			nil, "", "No package is installed",
+		},
+		{
+			[]string{prog, "outdated", "--help"},
+			nil, "", commands["outdated"].helpText,
+		},
+		{
+			[]string{prog, "outdated", "--no-such-option"},
+			ErrParseFailed, "",
+			strings.Join([]string{flagError, commands["outdated"].helpText}, "\n"),
 		},
 
 		// Subcommand "list"

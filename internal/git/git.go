@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type Git struct {
@@ -33,6 +34,46 @@ func (g *Git) Clone(src, dst, branch string, verbose bool) error {
 	}
 	args = append(args, dst)
 	return g.prepareCommand(args, verbose).Run()
+}
+
+func (g *Git) HasUpdate(verbose bool) (bool, error) {
+	err := g.prepareCommand([]string{"fetch"}, verbose).Run()
+	if err != nil {
+		fmt.Fprintf(g.err, "Error! git fetch failed. Error = %v", err)
+		return false, err
+	}
+	args := []string{"symbolic-ref", "--short", "--quiet", "HEAD"}
+	if err = g.prepareCommand(args, false).Run(); err != nil {
+		// Probably detached HEAD, no need to update
+		return false, nil
+	}
+
+	args = []string{"rev-list", "--count", "HEAD...HEAD@{upstream}"}
+	s := &strings.Builder{}
+	cmd := exec.Command(g.cmd, args...)
+	cmd.Stdout = s
+	cmd.Stderr = g.err
+	if verbose {
+		fmt.Fprintf(g.err, "[CMD] %s\n", cmd.String())
+	}
+	err = cmd.Run()
+	if err != nil {
+		fmt.Fprintf(g.err, "Error! git rev-list failed. Error = %v", err)
+		return false, err
+	}
+
+	var i int
+	_, err = fmt.Fscanln(strings.NewReader(s.String()), &i)
+	if err != nil {
+		fmt.Fprintf(g.err, "Error! Cast failed: %v -> int. Error = %v", s, err)
+		return false, err
+	}
+
+	if i > 0 {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
 
 func (g *Git) Pull(verbose bool) error {

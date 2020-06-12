@@ -49,6 +49,7 @@ Available Commands:
   uninstall  # Alias of "remove"
   list       # List installed packages
   upgrade    # Upgrade an installed package
+  outdated   # Show outdated packages
   link       # Pseudo installation of local directory
   destroy    # Delete all materials including packages
 

@@ -9,11 +9,7 @@ import (
 )
 
 type listCmd struct {
-	commonCmd
-	option struct {
-		verbose *bool
-		commonFlags
-	}
+	verboseCmd
 }
 
 func newListCmd(common commonCmd) listCmd {
@@ -41,7 +37,7 @@ Options:
 }
 
 func (cmd *listCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, false)
+	done, err := parseStartHelp(cmd, args, false)
 	if done || err != nil {
 		return err
 	}

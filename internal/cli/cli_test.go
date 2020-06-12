@@ -50,7 +50,7 @@ Usage:`, prog),
 	commands["install"] = command{
 		true,
 		fmt.Sprintf(`Summary:
-  Install a repository in github.com as a %s package, assuming it contains shell scripts.
+  Install a repository from HTTPS site as a %s package, assuming it contains shell scripts.
 
 Syntax:`, prog),
 	}
@@ -75,6 +75,15 @@ Syntax:`,
 		true,
 		`Summary:
   Upgrade an installed package.
+
+Syntax:`,
+	}
+
+	commands["link"] = command{
+		true,
+		`Summary:
+  Pseudo installation of a package from local filesystem.
+  Creates symbolic link of a directory into a package path.
 
 Syntax:`,
 	}
@@ -209,6 +218,31 @@ PATH="%s:${PATH}"
 			[]string{prog, "list", "--no-such-option"},
 			ErrParseFailed, "",
 			strings.Join([]string{flagError, commands["list"].helpText}, "\n"),
+		},
+
+		// Subcommand "link"
+		{
+			[]string{prog, "link"},
+			ErrUsage, "", commands["link"].helpText,
+		},
+		{
+			[]string{prog, "link", "--help"},
+			nil, "", commands["link"].helpText,
+		},
+		{
+			[]string{prog, "link", "--no-such-option"},
+			ErrParseFailed, "",
+			strings.Join([]string{flagError, commands["link"].helpText}, "\n"),
+		},
+		{
+			[]string{prog, "link", "no/such/file/or/directory"},
+			ErrArgument, "",
+			"Error! \"no/such/file/or/directory\" does not exist\n",
+		},
+		{
+			[]string{prog, "link", ".", "-"},
+			ErrArgument, "",
+			"Error! Given argument \"-\" does not look like valid package name\n",
 		},
 
 		// Subcommand "destroy"

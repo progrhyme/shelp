@@ -16,6 +16,10 @@ type rootCmd struct {
 	}
 }
 
+func (cmd *rootCmd) getOpts() flagger {
+	return &cmd.option
+}
+
 func newRootCmd(common commonCmd, ver string) rootCmd {
 	cmd := &rootCmd{version: ver}
 	cmd.commonCmd = common
@@ -45,6 +49,7 @@ Available Commands:
   uninstall  # Alias of "remove"
   list       # List installed packages
   upgrade    # Upgrade an installed package
+  link       # Pseudo installation of local directory
   destroy    # Delete all materials including packages
 
 Run "{{.Prog}} COMMAND -h|--help" to see usage of each command.
@@ -59,7 +64,7 @@ Options without subcommand:
 }
 
 func (cmd *rootCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(&cmd.flags, &cmd.option, cmd.err, args, false)
+	done, err := parseStartHelp(cmd, args, false)
 	if done || err != nil {
 		return err
 	}

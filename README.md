@@ -65,7 +65,7 @@ Command Syntax:
 shelp install [<site>/]<account>/<repository>[@<branch>] [<package>]
 
 # Specify complete git-url with any protocol
-shelp install <git-url> [<package-name>]
+shelp install <git-url> [<package>]
 ```
 
 For example, the following command installs https://github.com/bats-core/bats-core

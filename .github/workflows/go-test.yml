@@ -1,6 +1,14 @@
 name: go-test
 
-on: push
+on:
+  push:
+    branches:
+      - '*'
+    paths-ignore:
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'LICENSE'
+      - 'Makefile'
 
 env:
   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

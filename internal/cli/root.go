@@ -3,8 +3,6 @@ package cli
 import (
 	"fmt"
 	"text/template"
-
-	"github.com/spf13/pflag"
 )
 
 type rootCmd struct {
@@ -23,12 +21,8 @@ func (cmd *rootCmd) getOpts() flagger {
 func newRootCmd(common commonCmd, ver string) rootCmd {
 	cmd := &rootCmd{version: ver}
 	cmd.commonCmd = common
-	cmd.flags = *pflag.NewFlagSet("main", pflag.ContinueOnError)
-
-	cmd.flags.SetOutput(cmd.err)
+	setupCmdFlags(cmd, "main", cmd.usage)
 	cmd.option.version = cmd.flags.BoolP("version", "v", false, "# Show CLI version")
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
-	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 

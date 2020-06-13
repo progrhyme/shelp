@@ -11,7 +11,6 @@ import (
 
 	"github.com/progrhyme/shelp/internal/config"
 	"github.com/progrhyme/shelp/internal/git"
-	"github.com/spf13/pflag"
 )
 
 type installCmd struct {
@@ -23,11 +22,7 @@ func newInstallCmd(common commonCmd, git git.Git) installCmd {
 	cmd := &installCmd{}
 	cmd.commonCmd = common
 	cmd.git = git
-	cmd.flags = *pflag.NewFlagSet("install", pflag.ContinueOnError)
-
-	cmd.flags.SetOutput(cmd.err)
-	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "# Verbose output")
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
+	setupCmdFlags(cmd, "install", nil)
 	return *cmd
 }
 

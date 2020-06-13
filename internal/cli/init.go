@@ -8,7 +8,6 @@ import (
 	"text/template"
 
 	"github.com/progrhyme/shelp/internal/config"
-	"github.com/spf13/pflag"
 )
 
 type initCmd struct {
@@ -20,14 +19,11 @@ type initCmd struct {
 func newInitCmd(common commonCmd) initCmd {
 	cmd := &initCmd{}
 	cmd.commonCmd = common
-	cmd.flags = *pflag.NewFlagSet("init", pflag.ContinueOnError)
 
 	cmd.shell = filepath.Base(os.Getenv("SHELL"))
 	cmd.shProf = shellProfile(cmd.shell)
 
-	cmd.flags.SetOutput(cmd.err)
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
-	cmd.flags.Usage = cmd.usage
+	setupCmdFlags(cmd, "init", cmd.usage)
 	return *cmd
 }
 

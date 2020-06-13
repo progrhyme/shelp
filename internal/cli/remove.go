@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	"github.com/spf13/pflag"
 )
 
 type removeCmd struct {
@@ -19,11 +17,7 @@ type removeCmd struct {
 func newRemoveCmd(common commonCmd) removeCmd {
 	cmd := &removeCmd{}
 	cmd.commonCmd = common
-	cmd.flags = *pflag.NewFlagSet("remove", pflag.ContinueOnError)
-
-	cmd.flags.SetOutput(cmd.err)
-	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "# Verbose output")
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
+	setupCmdFlags(cmd, "remove", nil)
 	return *cmd
 }
 

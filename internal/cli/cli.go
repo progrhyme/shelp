@@ -10,6 +10,7 @@ import (
 
 	"github.com/progrhyme/shelp/internal/config"
 	"github.com/progrhyme/shelp/internal/git"
+	"github.com/spf13/pflag"
 )
 
 var (
@@ -73,6 +74,30 @@ func (c *Cli) ParseAndExec(args []string) error {
 		return destroyer.parseAndExec(args[2:])
 	default:
 		return root.parseAndExec(args[1:])
+	}
+}
+
+func setupCmdFlags(cmd interface{}, name string, usage func()) {
+	flags := pflag.NewFlagSet(name, pflag.ContinueOnError)
+	cmd.(commander).setFlags(flags)
+	flags = cmd.(commander).flagset()
+	flags.SetOutput(cmd.(commander).errs())
+	if usage != nil {
+		flags.Usage = usage
+	}
+
+	switch v := cmd.(type) {
+	case verboseCommander:
+		option := cmd.(verboseCommander).verboseOpts()
+		option.setHelp(flags.BoolP("help", "h", false, "# Show help"))
+		option.setVerbose(flags.BoolP("verbose", "v", false, "# Verbose output"))
+
+	case helpCommander:
+		option := cmd.(helpCommander).getOpts()
+		option.setHelp(flags.BoolP("help", "h", false, "# Show help"))
+
+	default:
+		panic(fmt.Sprintf("Unexpected type! cmd: %v, type: %v", cmd, v))
 	}
 }
 

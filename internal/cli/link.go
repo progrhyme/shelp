@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"text/template"
-
-	"github.com/spf13/pflag"
 )
 
 type linkCmd struct {
@@ -17,12 +15,7 @@ type linkCmd struct {
 func newLinkCmd(common commonCmd) linkCmd {
 	cmd := &linkCmd{}
 	cmd.commonCmd = common
-	cmd.flags = *pflag.NewFlagSet("link", pflag.ContinueOnError)
-
-	cmd.flags.SetOutput(cmd.err)
-	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "# Verbose output")
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
-	cmd.flags.Usage = cmd.usage
+	setupCmdFlags(cmd, "link", cmd.usage)
 	return *cmd
 }
 

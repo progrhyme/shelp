@@ -163,11 +163,6 @@ PATH="%s:${PATH}"
 			strings.Join([]string{flagError, commands["install"].helpText}, "\n"),
 		},
 		{
-			[]string{prog, "install", "invalid-repo-specifier"},
-			ErrArgument, "",
-			strings.Join([]string{"Error! Given argument \"invalid-repo-specifier\" does not look like valid repository", commands["install"].helpText}, "\n"),
-		},
-		{
 			[]string{prog, "install", validPkgRepo, "-"},
 			ErrArgument, "",
 			"Error! Given argument \"-\" does not look like valid package name\n",

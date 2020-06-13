@@ -74,7 +74,7 @@ Syntax:`,
 	commands["upgrade"] = command{
 		true,
 		`Summary:
-  Upgrade an installed package.
+  Upgrade installed packages.
 
 Syntax:`,
 	}
@@ -196,7 +196,7 @@ PATH="%s:${PATH}"
 		// Subcommand "upgrade"
 		{
 			[]string{prog, "upgrade"},
-			ErrUsage, "", commands["upgrade"].helpText,
+			ErrNoPackage, "", "No package is installed",
 		},
 		{
 			[]string{prog, "upgrade", "--help"},
@@ -216,7 +216,7 @@ PATH="%s:${PATH}"
 		// Subcommand "outdated"
 		{
 			[]string{prog, "outdated"},
-			nil, "", "No package is installed",
+			ErrNoPackage, "", "No package is installed",
 		},
 		{
 			[]string{prog, "outdated", "--help"},

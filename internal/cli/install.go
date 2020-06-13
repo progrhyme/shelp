@@ -14,14 +14,14 @@ import (
 )
 
 type installCmd struct {
-	verboseCmd
+	gitCmd
 	name string
-	git  git.Git
 }
 
 func newInstallCmd(common commonCmd, git git.Git) installCmd {
-	cmd := &installCmd{git: git}
+	cmd := &installCmd{}
 	cmd.commonCmd = common
+	cmd.git = git
 	cmd.flags = *pflag.NewFlagSet("install", pflag.ContinueOnError)
 
 	cmd.flags.SetOutput(cmd.err)

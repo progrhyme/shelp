@@ -11,13 +11,13 @@ import (
 )
 
 type outdatedCmd struct {
-	verboseCmd
-	git git.Git
+	gitCmd
 }
 
 func newOutdatedCmd(common commonCmd, git git.Git) outdatedCmd {
-	cmd := &outdatedCmd{git: git}
+	cmd := &outdatedCmd{}
 	cmd.commonCmd = common
+	cmd.git = git
 	cmd.flags = *pflag.NewFlagSet("outdated", pflag.ContinueOnError)
 
 	cmd.flags.SetOutput(cmd.err)
@@ -57,29 +57,16 @@ func (cmd *outdatedCmd) parseAndExec(args []string) error {
 	}
 
 	for _, pkg := range pkgs {
-		path := filepath.Join(cmd.config.PackagePath(), pkg.Name())
-		if *cmd.option.verbose {
-			fmt.Fprintf(cmd.err, "[Info] Checking %s ...\n", pkg.Name())
-		}
-		link, err := os.Readlink(path)
-		if link != "" {
-			if err != nil {
-				fmt.Fprintf(cmd.err, "Error! Reading link failed. Path = %s\n", path)
-			}
-			if *cmd.option.verbose {
-				fmt.Fprintln(cmd.err, "[Info] Symbolic link. Skip")
-			}
-			continue
-		}
-
-		if err = os.Chdir(path); err != nil {
-			fmt.Fprintf(cmd.err, "Error! Directory change failed. Path = %s\n", path)
-			return ErrOperationFailed
-		}
-		old, err := cmd.git.HasUpdate(*cmd.option.verbose)
-		if err != nil {
+		old, err := hasPackageUpdate(cmd, pkg.Name())
+		switch err {
+		case nil:
+			// do nothing
+		case ErrOperationFailed:
+			return err
+		default:
 			return ErrCommandFailed
 		}
+
 		if old {
 			fmt.Fprintln(cmd.out, pkg.Name())
 		} else {
@@ -90,4 +77,28 @@ func (cmd *outdatedCmd) parseAndExec(args []string) error {
 	}
 
 	return nil
+}
+
+func hasPackageUpdate(cmd gitCommander, name string) (bool, error) {
+	path := filepath.Join(cmd.getConf().PackagePath(), name)
+	if *cmd.verboseOpts().verboseFlg() {
+		fmt.Fprintf(cmd.errs(), "[Info] Checking %s ...\n", name)
+	}
+	link, err := os.Readlink(path)
+	if link != "" {
+		if err != nil {
+			// Just in case
+			fmt.Fprintf(cmd.errs(), "Error! Reading link failed. Path = %s\n", path)
+		}
+		if *cmd.verboseOpts().verboseFlg() {
+			fmt.Fprintln(cmd.errs(), "[Info] Symbolic link. Skip")
+		}
+		return false, nil
+	}
+
+	if err = os.Chdir(path); err != nil {
+		fmt.Fprintf(cmd.errs(), "Error! Directory change failed. Path = %s\n", path)
+		return false, ErrOperationFailed
+	}
+	return cmd.gitCtl().HasUpdate(*cmd.verboseOpts().verboseFlg())
 }

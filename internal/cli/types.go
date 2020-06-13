@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/progrhyme/shelp/internal/config"
+	"github.com/progrhyme/shelp/internal/git"
 	"github.com/spf13/pflag"
 )
 
@@ -95,4 +96,18 @@ func (cmd *verboseCmd) getOpts() flagger {
 
 func (cmd *verboseCmd) verboseOpts() verboseFlagger {
 	return &cmd.option
+}
+
+type gitCommander interface {
+	verboseCommander
+	gitCtl() *git.Git
+}
+
+type gitCmd struct {
+	verboseCmd
+	git git.Git
+}
+
+func (cmd *gitCmd) gitCtl() *git.Git {
+	return &cmd.git
 }

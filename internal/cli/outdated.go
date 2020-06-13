@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -52,53 +51,40 @@ func (cmd *outdatedCmd) parseAndExec(args []string) error {
 		return err
 	}
 
-	nopkg := func() {
-		fmt.Fprintln(cmd.err, "No package is installed")
-	}
-	if _, err := os.Stat(cmd.config.PackagePath()); os.IsNotExist(err) {
-		nopkg()
-		return nil
-	}
-
-	pkgs, err := ioutil.ReadDir(cmd.config.PackagePath())
+	pkgs, err := installedPackages(cmd, true)
 	if err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
-		return ErrOperationFailed
+		return err
 	}
 
-	if len(pkgs) == 0 {
-		nopkg()
-	} else {
-		for _, pkg := range pkgs {
-			path := filepath.Join(cmd.config.PackagePath(), pkg.Name())
-			if *cmd.option.verbose {
-				fmt.Fprintf(cmd.err, "[Info] Checking %s ...\n", pkg.Name())
-			}
-			link, err := os.Readlink(path)
-			if link != "" {
-				if err != nil {
-					fmt.Fprintf(cmd.err, "Error! Reading link failed. Path = %s\n", path)
-				}
-				if *cmd.option.verbose {
-					fmt.Fprintln(cmd.err, "[Info] Symbolic link. Skip")
-				}
-				continue
-			}
-
-			if err = os.Chdir(path); err != nil {
-				fmt.Fprintf(cmd.err, "Error! Directory change failed. Path = %s\n", path)
-				return ErrOperationFailed
-			}
-			old, err := cmd.git.HasUpdate(*cmd.option.verbose)
+	for _, pkg := range pkgs {
+		path := filepath.Join(cmd.config.PackagePath(), pkg.Name())
+		if *cmd.option.verbose {
+			fmt.Fprintf(cmd.err, "[Info] Checking %s ...\n", pkg.Name())
+		}
+		link, err := os.Readlink(path)
+		if link != "" {
 			if err != nil {
-				return ErrCommandFailed
+				fmt.Fprintf(cmd.err, "Error! Reading link failed. Path = %s\n", path)
 			}
-			if old {
-				fmt.Fprintln(cmd.out, pkg.Name())
-			} else {
-				if *cmd.option.verbose {
-					fmt.Fprintf(cmd.err, "%s is up-to-date\n", pkg.Name())
-				}
+			if *cmd.option.verbose {
+				fmt.Fprintln(cmd.err, "[Info] Symbolic link. Skip")
+			}
+			continue
+		}
+
+		if err = os.Chdir(path); err != nil {
+			fmt.Fprintf(cmd.err, "Error! Directory change failed. Path = %s\n", path)
+			return ErrOperationFailed
+		}
+		old, err := cmd.git.HasUpdate(*cmd.option.verbose)
+		if err != nil {
+			return ErrCommandFailed
+		}
+		if old {
+			fmt.Fprintln(cmd.out, pkg.Name())
+		} else {
+			if *cmd.option.verbose {
+				fmt.Fprintf(cmd.err, "%s is up-to-date\n", pkg.Name())
 			}
 		}
 	}

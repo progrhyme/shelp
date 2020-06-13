@@ -2,8 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 
 	"github.com/spf13/pflag"
 )
@@ -42,26 +40,13 @@ func (cmd *listCmd) parseAndExec(args []string) error {
 		return err
 	}
 
-	nopkg := func() {
-		fmt.Fprintln(cmd.err, "No package is installed")
-	}
-	if _, err := os.Stat(cmd.config.PackagePath()); os.IsNotExist(err) {
-		nopkg()
-		return nil
-	}
-
-	pkgs, err := ioutil.ReadDir(cmd.config.PackagePath())
+	pkgs, err := installedPackages(cmd, false)
 	if err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
-		return ErrOperationFailed
+		return err
 	}
 
-	if len(pkgs) == 0 {
-		nopkg()
-	} else {
-		for _, pkg := range pkgs {
-			fmt.Fprintln(cmd.out, pkg.Name())
-		}
+	for _, pkg := range pkgs {
+		fmt.Fprintln(cmd.out, pkg.Name())
 	}
 
 	return nil

@@ -74,7 +74,15 @@ Syntax:`,
 	commands["upgrade"] = command{
 		true,
 		`Summary:
-  Upgrade an installed package.
+  Upgrade installed packages.
+
+Syntax:`,
+	}
+
+	commands["outdated"] = command{
+		true,
+		`Summary:
+  Show installed packages which can be updated.
 
 Syntax:`,
 	}
@@ -155,11 +163,6 @@ PATH="%s:${PATH}"
 			strings.Join([]string{flagError, commands["install"].helpText}, "\n"),
 		},
 		{
-			[]string{prog, "install", "invalid-repo-specifier"},
-			ErrArgument, "",
-			strings.Join([]string{"Error! Given argument \"invalid-repo-specifier\" does not look like valid repository", commands["install"].helpText}, "\n"),
-		},
-		{
 			[]string{prog, "install", validPkgRepo, "-"},
 			ErrArgument, "",
 			"Error! Given argument \"-\" does not look like valid package name\n",
@@ -188,7 +191,7 @@ PATH="%s:${PATH}"
 		// Subcommand "upgrade"
 		{
 			[]string{prog, "upgrade"},
-			ErrUsage, "", commands["upgrade"].helpText,
+			ErrNoPackage, "", "No package is installed",
 		},
 		{
 			[]string{prog, "upgrade", "--help"},
@@ -203,6 +206,21 @@ PATH="%s:${PATH}"
 			[]string{prog, "upgrade", "not-installed-package"},
 			ErrArgument, "",
 			"\"not-installed-package\" is not installed",
+		},
+
+		// Subcommand "outdated"
+		{
+			[]string{prog, "outdated"},
+			ErrNoPackage, "", "No package is installed",
+		},
+		{
+			[]string{prog, "outdated", "--help"},
+			nil, "", commands["outdated"].helpText,
+		},
+		{
+			[]string{prog, "outdated", "--no-such-option"},
+			ErrParseFailed, "",
+			strings.Join([]string{flagError, commands["outdated"].helpText}, "\n"),
 		},
 
 		// Subcommand "list"

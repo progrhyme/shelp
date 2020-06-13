@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/progrhyme/shelp/internal/config"
@@ -16,6 +18,7 @@ var (
 	ErrArgument        = errors.New("Invalid argument")
 	ErrCommandFailed   = errors.New("Command execution failed")
 	ErrOperationFailed = errors.New("Operation failed")
+	ErrNoPackage       = errors.New("No package is installed")
 	ErrCanceled        = errors.New("Operation is canceled")
 	ErrWarning         = errors.New("Warning")
 )
@@ -59,6 +62,9 @@ func (c *Cli) ParseAndExec(args []string) error {
 	case "upgrade":
 		upgrader := newUpgradeCmd(common, c.git)
 		return upgrader.parseAndExec(args[2:])
+	case "outdated":
+		lister := newOutdatedCmd(common, c.git)
+		return lister.parseAndExec(args[2:])
 	case "link":
 		linker := newLinkCmd(common)
 		return linker.parseAndExec(args[2:])
@@ -94,4 +100,31 @@ func parseStartHelp(cmd helpCommander, args []string, requireArg bool) (bool, er
 	}
 
 	return false, nil
+}
+
+func installedPackages(cmd commander, noPkgErr bool) ([]os.FileInfo, error) {
+	var pkgs []os.FileInfo
+	nopkg := func() ([]os.FileInfo, error) {
+		fmt.Fprintln(cmd.errs(), "No package is installed")
+		if noPkgErr {
+			return pkgs, ErrNoPackage
+		} else {
+			return pkgs, nil
+		}
+	}
+	if _, err := os.Stat(cmd.getConf().PackagePath()); os.IsNotExist(err) {
+		return nopkg()
+	}
+
+	pkgs, err := ioutil.ReadDir(cmd.getConf().PackagePath())
+	if err != nil {
+		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
+		return pkgs, ErrOperationFailed
+	}
+
+	if len(pkgs) == 0 {
+		return nopkg()
+	}
+
+	return pkgs, nil
 }

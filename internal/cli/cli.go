@@ -82,8 +82,7 @@ func parseStartHelp(cmd helpCommander, args []string, requireArg bool) (bool, er
 		return true, ErrUsage
 	}
 
-	err := cmd.flagset().Parse(args)
-	if err != nil {
+	if err := cmd.flagset().Parse(args); err != nil {
 		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
 		cmd.flagset().Usage()
 		return true, ErrParseFailed

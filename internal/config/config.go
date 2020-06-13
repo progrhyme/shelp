@@ -8,7 +8,7 @@ import (
 
 type Config struct{}
 
-var RootVarName string = "SHELP_ROOT"
+const RootVarName = "SHELP_ROOT"
 
 func NewConfig() Config {
 	return *new(Config)

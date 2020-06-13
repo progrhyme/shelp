@@ -1,3 +1,15 @@
+## 0.4.0 (2020-06-13)
+
+Features: ([#3](https://github.com/progrhyme/shelp/pull/3))
+
+- Add `outdated` subcommand to show packages which have updates
+- (upgrade) Upgrade all packages with no argument
+- (install) Support all protocols available on git-clone command
+
+Other: ([#3](https://github.com/progrhyme/shelp/pull/3))
+
+- (Testing/go) Add tests for some of typical sequential CLI tasks
+
 ## 0.3.0 (2020-06-13)
 
 Features: ([#2](https://github.com/progrhyme/shelp/pull/2))

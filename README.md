@@ -27,7 +27,7 @@ Let's see typical commands to achieve this:
 
 ```sh
 bin=/usr/local/bin  # Change to your favorite path
-version=0.3.0       # Make sure this is the latest
+version=0.4.0       # Make sure this is the latest
 os=darwin           # or "linux" is supported
 curl -Lo $bin/shelp "https://github.com/progrhyme/shelp/releases/download/v${version}/shelp_${version}_${os}_x86_64"
 chmod +x $bin/shelp
@@ -58,14 +58,14 @@ The default value is `~/.shelp`.
 # Quickstart
 ## Install Packages
 
-Limitation:
-
-- In shelp v0.3.0, only installation via https scheme is supported.
-
 Command Syntax:
 
 ```sh
+# Handy syntax using HTTPS protocol
 shelp install [<site>/]<account>/<repository>[@<branch>] [<package>]
+
+# Specify complete git-url with any protocol
+shelp install <git-url> [<package-name>]
 ```
 
 For example, the following command installs https://github.com/bats-core/bats-core
@@ -80,10 +80,21 @@ Then, you can run `bats` command in the package.
 Other Examples:
 
 ```sh
+# Handy syntax
 shelp install b4b4r07/enhancd           # Install "enhancd" from github.com
 shelp install b4b4r07/enhancd@v2.2.4    # Install specified tag or branch
 shelp install gitlab.com/dwt1/dotfiles  # Install from gitlab.com
+
+# Specify git-url
+shelp install git@github.com:b4b4r07/enhancd.git  # Install via SSH protocol
+shelp install file:///path/to/repository          # Install via Local protocol
+shelp install git://server/gitproject.git         # Install via Git protocol
 ```
+
+Limitation:
+
+1. `shelp install` always clones repository as shallow one, with `--depth=1` option
+2. You can't specify `--branch` option in the latter command syntax, nor others
 
 ## Shell Function
 
@@ -122,7 +133,8 @@ shelp add        # Alias of "install"
 shelp remove     # Uninstall a package
 shelp uninstall  # Alias of "remove"
 shelp list       # List installed packages
-shelp upgrade    # Upgrade an installed package
+shelp upgrade    # Upgrade installed packages
+shelp outdated   # Show outdated packages
 shelp link       # Pseudo installation of local directory
 shelp destroy    # Delete all materials including packages
 ```

@@ -3,8 +3,6 @@ package cli
 import (
 	"fmt"
 	"text/template"
-
-	"github.com/spf13/pflag"
 )
 
 type rootCmd struct {
@@ -23,12 +21,8 @@ func (cmd *rootCmd) getOpts() flagger {
 func newRootCmd(common commonCmd, ver string) rootCmd {
 	cmd := &rootCmd{version: ver}
 	cmd.commonCmd = common
-	cmd.flags = *pflag.NewFlagSet("main", pflag.ContinueOnError)
-
-	cmd.flags.SetOutput(cmd.err)
+	setupCmdFlags(cmd, "main", cmd.usage)
 	cmd.option.version = cmd.flags.BoolP("version", "v", false, "# Show CLI version")
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
-	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 
@@ -51,6 +45,7 @@ Available Commands:
   upgrade    # Upgrade installed packages
   outdated   # Show outdated packages
   link       # Pseudo installation of local directory
+  bundle     # Install packages at once
   destroy    # Delete all materials including packages
 
 Run "{{.Prog}} COMMAND -h|--help" to see usage of each command.
@@ -65,7 +60,7 @@ Options without subcommand:
 }
 
 func (cmd *rootCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(cmd, args, false)
+	done, err := parseStart(cmd, args, false)
 	if done || err != nil {
 		return err
 	}
@@ -75,7 +70,10 @@ func (cmd *rootCmd) parseAndExec(args []string) error {
 		return nil
 	}
 
-	fmt.Fprintf(cmd.err, "Error! Subcommand not found: %s\n", cmd.flags.Arg(0))
+	if cmd.flags.NArg() > 0 {
+		fmt.Fprintf(cmd.err, "Error! Subcommand not found: %s\n", cmd.flags.Arg(0))
+	}
+
 	cmd.flags.Usage()
 	return ErrUsage
 }

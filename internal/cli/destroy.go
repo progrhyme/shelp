@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/progrhyme/shelp/internal/config"
-	"github.com/spf13/pflag"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -25,12 +24,8 @@ func (cmd *destroyCmd) getOpts() flagger {
 func newDestroyCmd(common commonCmd) destroyCmd {
 	cmd := &destroyCmd{}
 	cmd.commonCmd = common
-	cmd.flags = *pflag.NewFlagSet("destroy", pflag.ContinueOnError)
-
-	cmd.flags.SetOutput(cmd.err)
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
+	setupCmdFlags(cmd, "destroy", cmd.usage)
 	cmd.option.yes = cmd.flags.BoolP("yes", "y", false, "# Destroy without confirmation")
-	cmd.flags.Usage = cmd.usage
 	return *cmd
 }
 
@@ -47,7 +42,7 @@ Options:
 }
 
 func (cmd *destroyCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(cmd, args, false)
+	done, err := parseStart(cmd, args, false)
 	if done || err != nil {
 		return err
 	}

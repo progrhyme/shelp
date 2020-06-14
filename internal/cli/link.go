@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"text/template"
-
-	"github.com/spf13/pflag"
 )
 
 type linkCmd struct {
@@ -17,12 +15,7 @@ type linkCmd struct {
 func newLinkCmd(common commonCmd) linkCmd {
 	cmd := &linkCmd{}
 	cmd.commonCmd = common
-	cmd.flags = *pflag.NewFlagSet("link", pflag.ContinueOnError)
-
-	cmd.flags.SetOutput(cmd.err)
-	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "# Verbose output")
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
-	cmd.flags.Usage = cmd.usage
+	setupCmdFlags(cmd, "link", cmd.usage)
 	return *cmd
 }
 
@@ -50,7 +43,7 @@ Options:
 }
 
 func (cmd *linkCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(cmd, args, true)
+	done, err := parseStart(cmd, args, true)
 	if done || err != nil {
 		return err
 	}
@@ -100,9 +93,9 @@ func (cmd *linkCmd) parseAndExec(args []string) error {
 	binPath := filepath.Join(pkgPath, "bin")
 	var linkErr error
 	if _, err := os.Stat(binPath); err == nil {
-		linkErr = createBinsLinks(cmd, binPath)
+		linkErr = createLinksByBinDir(cmd, binPath)
 	} else {
-		linkErr = createBinsLinks(cmd, pkgPath)
+		linkErr = createLinksByBinDir(cmd, pkgPath)
 	}
 	if linkErr != nil {
 		fmt.Fprintf(cmd.err, "\"%s\" is linked as package \"%s\", but with some failures\n", src, pkg)

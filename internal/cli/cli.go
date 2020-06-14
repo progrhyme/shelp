@@ -10,28 +10,31 @@ import (
 
 	"github.com/progrhyme/shelp/internal/config"
 	"github.com/progrhyme/shelp/internal/git"
+	"github.com/spf13/pflag"
 )
 
 var (
-	ErrUsage           = errors.New("Usage is shown")
-	ErrParseFailed     = errors.New("Cannot parse flags")
-	ErrArgument        = errors.New("Invalid argument")
-	ErrCommandFailed   = errors.New("Command execution failed")
-	ErrOperationFailed = errors.New("Operation failed")
-	ErrNoPackage       = errors.New("No package is installed")
-	ErrCanceled        = errors.New("Operation is canceled")
-	ErrWarning         = errors.New("Warning")
+	ErrConfig           = errors.New("Configuration error")
+	ErrUsage            = errors.New("Usage is shown")
+	ErrParseFailed      = errors.New("Cannot parse flags")
+	ErrArgument         = errors.New("Invalid argument")
+	ErrCommandFailed    = errors.New("Command execution failed")
+	ErrOperationFailed  = errors.New("Operation failed")
+	ErrAlreadyInstalled = errors.New("Package is already installed")
+	ErrNoPackage        = errors.New("No package is installed")
+	ErrCanceled         = errors.New("Operation is canceled")
+	ErrWarning          = errors.New("Warning")
 )
 
 type Cli struct {
 	version   string
-	config    config.Config
+	config    *config.Config
 	git       git.Git
 	outWriter io.Writer
 	errWriter io.Writer
 }
 
-func NewCli(ver string, cfg config.Config, g git.Git, out, err io.Writer) Cli {
+func NewCli(ver string, cfg *config.Config, g git.Git, out, err io.Writer) Cli {
 	return Cli{version: ver, config: cfg, git: g, outWriter: out, errWriter: err}
 }
 
@@ -68,6 +71,9 @@ func (c *Cli) ParseAndExec(args []string) error {
 	case "link":
 		linker := newLinkCmd(common)
 		return linker.parseAndExec(args[2:])
+	case "bundle":
+		bundler := newBundleCmd(common, c.git)
+		return bundler.parseAndExec(args[2:])
 	case "destroy":
 		destroyer := newDestroyCmd(common)
 		return destroyer.parseAndExec(args[2:])
@@ -76,14 +82,41 @@ func (c *Cli) ParseAndExec(args []string) error {
 	}
 }
 
-func parseStartHelp(cmd helpCommander, args []string, requireArg bool) (bool, error) {
+func setupCmdFlags(cmd interface{}, name string, usage func()) {
+	flags := pflag.NewFlagSet(name, pflag.ContinueOnError)
+	cmd.(commander).setFlags(flags)
+	flags = cmd.(commander).flagset()
+	flags.SetOutput(cmd.(commander).errs())
+	if usage != nil {
+		flags.Usage = usage
+	}
+
+	switch v := cmd.(type) {
+	case verboseCommander:
+		option := cmd.(verboseCommander).verboseOpts()
+		option.setConfig(flags.StringP("config", "c", "", "# Configuration file"))
+		option.setHelp(flags.BoolP("help", "h", false, "# Show help"))
+		option.setVerbose(flags.BoolP("verbose", "v", false, "# Verbose output"))
+
+	case helpCommander:
+		option := cmd.(helpCommander).getOpts()
+		option.setConfig(flags.StringP("config", "c", "", "# Configuration file"))
+		option.setHelp(flags.BoolP("help", "h", false, "# Show help"))
+
+	default:
+		panic(fmt.Sprintf("Unexpected type! cmd: %v, type: %v", cmd, v))
+	}
+}
+
+// Start parsing command-line arguments
+// Then, load configuration file if it exists
+func parseStart(cmd helpCommander, args []string, requireArg bool) (done bool, e error) {
 	if requireArg && len(args) == 0 {
 		cmd.flagset().Usage()
 		return true, ErrUsage
 	}
 
-	err := cmd.flagset().Parse(args)
-	if err != nil {
+	if err := cmd.flagset().Parse(args); err != nil {
 		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
 		cmd.flagset().Usage()
 		return true, ErrParseFailed
@@ -97,6 +130,14 @@ func parseStartHelp(cmd helpCommander, args []string, requireArg bool) (bool, er
 	if requireArg && cmd.flagset().NArg() == 0 {
 		cmd.flagset().Usage()
 		return true, ErrUsage
+	}
+
+	// Load config file
+	if err := cmd.getConf().LoadConfig(*cmd.getOpts().confFile()); err != nil {
+		return true, ErrConfig
+	}
+	if cmd.getConf().IsLoaded() {
+		fmt.Fprintf(cmd.errs(), "Use config: %s\n", cmd.getConf().File())
 	}
 
 	return false, nil

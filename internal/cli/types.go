@@ -10,14 +10,15 @@ import (
 
 type commander interface {
 	getConf() *config.Config
-	flagset() *pflag.FlagSet
 	outs() io.Writer
 	errs() io.Writer
+	flagset() *pflag.FlagSet
+	setFlags(*pflag.FlagSet)
 }
 
 // Meets commander interface
 type commonCmd struct {
-	config  config.Config
+	config  *config.Config
 	flags   pflag.FlagSet
 	out     io.Writer
 	err     io.Writer
@@ -25,11 +26,7 @@ type commonCmd struct {
 }
 
 func (cmd *commonCmd) getConf() *config.Config {
-	return &cmd.config
-}
-
-func (cmd *commonCmd) flagset() *pflag.FlagSet {
-	return &cmd.flags
+	return cmd.config
 }
 
 func (cmd *commonCmd) outs() io.Writer {
@@ -40,16 +37,40 @@ func (cmd *commonCmd) errs() io.Writer {
 	return cmd.err
 }
 
+func (cmd *commonCmd) flagset() *pflag.FlagSet {
+	return &cmd.flags
+}
+
+func (cmd *commonCmd) setFlags(flags *pflag.FlagSet) {
+	cmd.flags = *flags
+}
+
 type flagger interface {
 	helpFlg() *bool
+	confFile() *string
+	setHelp(*bool)
+	setConfig(*string)
 }
 
 type commonFlags struct {
-	help *bool
+	help   *bool
+	config *string
 }
 
 func (flag *commonFlags) helpFlg() *bool {
 	return flag.help
+}
+
+func (flag *commonFlags) confFile() *string {
+	return flag.config
+}
+
+func (flag *commonFlags) setHelp(help *bool) {
+	flag.help = help
+}
+
+func (flag *commonFlags) setConfig(conf *string) {
+	flag.config = conf
 }
 
 type helpCommander interface {
@@ -69,6 +90,7 @@ func (cmd *helpCmd) getOpts() flagger {
 type verboseFlagger interface {
 	flagger
 	verboseFlg() *bool
+	setVerbose(*bool)
 }
 
 type verboseFlags struct {
@@ -78,6 +100,10 @@ type verboseFlags struct {
 
 func (flag *verboseFlags) verboseFlg() *bool {
 	return flag.verbose
+}
+
+func (flag *verboseFlags) setVerbose(verbose *bool) {
+	flag.verbose = verbose
 }
 
 type verboseCommander interface {

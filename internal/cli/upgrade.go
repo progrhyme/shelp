@@ -7,7 +7,6 @@ import (
 	"text/template"
 
 	"github.com/progrhyme/shelp/internal/git"
-	"github.com/spf13/pflag"
 )
 
 type upgradeCmd struct {
@@ -18,12 +17,7 @@ func newUpgradeCmd(common commonCmd, git git.Git) upgradeCmd {
 	cmd := &upgradeCmd{}
 	cmd.commonCmd = common
 	cmd.git = git
-	cmd.flags = *pflag.NewFlagSet("upgrade", pflag.ContinueOnError)
-
-	cmd.flags.SetOutput(cmd.err)
-	cmd.option.verbose = cmd.flags.BoolP("verbose", "v", false, "# Verbose output")
-	cmd.option.help = cmd.flags.BoolP("help", "h", false, "# Show help")
-	cmd.flags.Usage = cmd.usage
+	setupCmdFlags(cmd, "upgrade", cmd.usage)
 	return *cmd
 }
 
@@ -48,7 +42,7 @@ Options:
 }
 
 func (cmd *upgradeCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(cmd, args, false)
+	done, err := parseStart(cmd, args, false)
 	if done || err != nil {
 		return err
 	}

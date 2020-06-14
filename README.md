@@ -182,6 +182,7 @@ shelp list       # List installed packages
 shelp upgrade    # Upgrade installed packages
 shelp outdated   # Show outdated packages
 shelp link       # Pseudo installation of local directory
+shelp bundle     # Install packages at once
 shelp destroy    # Delete all materials including packages
 ```
 

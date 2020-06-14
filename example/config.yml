@@ -9,3 +9,21 @@ git:
   # Default: true
   # Values: [true, false]
   shallow: true
+
+# Package configs for installation
+# Spec:
+# - from: <remote-location>
+#   as: <package-name>
+#   at: <branch-or-tag>
+#   bin:
+#     - <path-to-bin-file>
+#     - :
+packages:
+- from: b4b4r07/enhancd@v2.2.4
+- from: gitlab.com/dwt1/dotfiles
+  as: dwt1-dotfiles
+- from: bpkg/bpkg
+  bin:
+    - bpkg
+- from: git@github.com:someone/gitproject.git
+  at: feature/awesome

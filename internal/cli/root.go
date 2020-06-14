@@ -45,6 +45,7 @@ Available Commands:
   upgrade    # Upgrade installed packages
   outdated   # Show outdated packages
   link       # Pseudo installation of local directory
+  bundle     # Install packages at once
   destroy    # Delete all materials including packages
 
 Run "{{.Prog}} COMMAND -h|--help" to see usage of each command.

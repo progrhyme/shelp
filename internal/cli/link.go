@@ -93,9 +93,9 @@ func (cmd *linkCmd) parseAndExec(args []string) error {
 	binPath := filepath.Join(pkgPath, "bin")
 	var linkErr error
 	if _, err := os.Stat(binPath); err == nil {
-		linkErr = createBinsLinks(cmd, binPath)
+		linkErr = createLinksByBinDir(cmd, binPath)
 	} else {
-		linkErr = createBinsLinks(cmd, pkgPath)
+		linkErr = createLinksByBinDir(cmd, pkgPath)
 	}
 	if linkErr != nil {
 		fmt.Fprintf(cmd.err, "\"%s\" is linked as package \"%s\", but with some failures\n", src, pkg)

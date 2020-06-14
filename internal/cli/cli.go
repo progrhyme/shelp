@@ -14,15 +14,16 @@ import (
 )
 
 var (
-	ErrConfig          = errors.New("Configuration error")
-	ErrUsage           = errors.New("Usage is shown")
-	ErrParseFailed     = errors.New("Cannot parse flags")
-	ErrArgument        = errors.New("Invalid argument")
-	ErrCommandFailed   = errors.New("Command execution failed")
-	ErrOperationFailed = errors.New("Operation failed")
-	ErrNoPackage       = errors.New("No package is installed")
-	ErrCanceled        = errors.New("Operation is canceled")
-	ErrWarning         = errors.New("Warning")
+	ErrConfig           = errors.New("Configuration error")
+	ErrUsage            = errors.New("Usage is shown")
+	ErrParseFailed      = errors.New("Cannot parse flags")
+	ErrArgument         = errors.New("Invalid argument")
+	ErrCommandFailed    = errors.New("Command execution failed")
+	ErrOperationFailed  = errors.New("Operation failed")
+	ErrAlreadyInstalled = errors.New("Package is already installed")
+	ErrNoPackage        = errors.New("No package is installed")
+	ErrCanceled         = errors.New("Operation is canceled")
+	ErrWarning          = errors.New("Warning")
 )
 
 type Cli struct {
@@ -70,6 +71,9 @@ func (c *Cli) ParseAndExec(args []string) error {
 	case "link":
 		linker := newLinkCmd(common)
 		return linker.parseAndExec(args[2:])
+	case "bundle":
+		bundler := newBundleCmd(common, c.git)
+		return bundler.parseAndExec(args[2:])
 	case "destroy":
 		destroyer := newDestroyCmd(common)
 		return destroyer.parseAndExec(args[2:])

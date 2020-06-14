@@ -17,6 +17,12 @@ type properties struct {
 	Git struct {
 		Shallow bool
 	}
+	Packages []struct {
+		From string
+		Bin  []string
+		As   string
+		At   string
+	}
 }
 
 // Config wraps embedded properties

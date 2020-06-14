@@ -27,7 +27,7 @@ Let's see typical commands to achieve this:
 
 ```sh
 bin=/usr/local/bin  # Change to your favorite path
-version=0.4.0       # Make sure this is the latest
+version=0.5.0       # Make sure this is the latest
 os=darwin           # or "linux" is supported
 curl -Lo $bin/shelp "https://github.com/progrhyme/shelp/releases/download/v${version}/shelp_${version}_${os}_x86_64"
 chmod +x $bin/shelp
@@ -50,10 +50,10 @@ profile script (such as `~/.bashrc` or `~/.zshrc`):
 eval "$(shelp init -)"
 ```
 
-# Configuration
+If you want to store `shelp` materials in a location different from the default `~/.shelp`, set
+`SHELP_ROOT` environment variable beforehand.
 
-You can set `SHELP_ROOT` environment variable before using `shelp`.  
-The default value is `~/.shelp`.
+See [Configuration](#Configuration) section for details and other options.
 
 # Quickstart
 ## Install Packages
@@ -114,6 +114,52 @@ Then, the following command load oh-my-zsh.sh on your current shell:
 ```sh
 include ohmyzsh oh-my-zsh.sh
 ```
+
+# Configuration
+
+There are some ways to configure `shelp` behavior:
+
+1. Environment variables
+1. Configuration file
+1. Command-line options
+
+## Environment Variables
+
+There are a few environment variables which `shelp` refers on running:
+
+ Variable | Default | Description
+----------|---------|-------------
+ SHELP_CONFIG | `$SHELP_ROOT/config.yml` | Path of config file
+ SHELP_ROOT | `$HOME/.shelp` | Directory where the contents are stored
+
+## Configuration File
+
+You do not necessarily need a configuration file to use `shelp`.  
+But it will give you a way to manage packages with the file.
+
+Here is an example configuration:
+
+```YAML
+packages:
+- from: b4b4r07/enhancd@v2.2.4
+- from: gitlab.com/dwt1/dotfiles
+  as: dwt1-dotfiles
+- from: bpkg/bpkg
+  bin:
+    - bpkg
+- from: git@github.com:someone/gitproject.git
+  at: feature/awesome
+```
+
+When you run `shelp bundle` with this configuration, the listed packages will be installed.
+
+Take a look at [example/config.yml](example/config.yml) to see available properties on configuration.
+
+## Command-line Options
+
+`-c|--config CONFIG` option is available for all commands.  
+It specifies the path of configuration file and takes precedence over the environment variable
+`SHELP_CONFIG`.
 
 # CLI Usage
 

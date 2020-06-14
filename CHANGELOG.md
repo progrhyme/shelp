@@ -1,3 +1,10 @@
+## 0.5.0 (2020-06-14)
+
+Features: ([#4](https://github.com/progrhyme/shelp/pull/4))
+
+- Support YAML config file specified by `-c|--config` option or `SHELP_CONFIG` environment variable
+- Add `bundle` subcommand to install packages configured in the YAML
+
 ## 0.4.0 (2020-06-13)
 
 Features: ([#3](https://github.com/progrhyme/shelp/pull/3))

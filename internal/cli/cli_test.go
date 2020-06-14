@@ -18,7 +18,7 @@ func TestParseAndExecAll(t *testing.T) {
 	version := "0.0.1"
 	os.Setenv(config.RootVarName, "tmp")
 	os.MkdirAll("tmp", 0755)
-	cfg := config.NewConfig()
+	cfg := config.NewConfig(os.Stdout, os.Stderr)
 
 	// Variables as test parameters or expected outputs
 	validPkgRepo := "bats-core/bats-core"
@@ -285,7 +285,7 @@ PATH="%s:${PATH}"
 			out := &strings.Builder{}
 			err := &strings.Builder{}
 			g := git.NewGit(out, err)
-			c := NewCli(version, cfg, g, out, err)
+			c := NewCli(version, &cfg, g, out, err)
 			e := c.ParseAndExec(tt.args)
 			if e != tt.err {
 				t.Errorf("[Ret] Got: %v, Expected: %v", e, tt.err)

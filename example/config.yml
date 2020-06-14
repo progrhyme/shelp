@@ -1,0 +1,11 @@
+path:
+  # SHELP_ROOT directory
+  # Default: "~/.shelp"
+  # NOTE: "~" is not expanded on loading YAML
+  root: "/usr/local/shelp"
+
+git:
+  # Shallow clone on installation
+  # Default: true
+  # Values: [true, false]
+  shallow: true

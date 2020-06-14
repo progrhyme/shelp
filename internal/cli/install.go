@@ -68,7 +68,7 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	cmd.name = args[0]
 	cmd.flags.Usage = cmd.usage
 
-	done, err := parseStartHelp(cmd, args[1:], true)
+	done, err := parseStart(cmd, args[1:], true)
 	if done || err != nil {
 		return err
 	}
@@ -121,7 +121,12 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	}
 
 	fmt.Fprintf(cmd.out, "Fetching \"%s\" from %s ...\n", pkg, url)
-	err = cmd.git.Clone(url, pkgPath, branch, *cmd.option.verbose)
+	gitOpts := git.Option{
+		Branch:  branch,
+		Shallow: cmd.config.Git.Shallow,
+		Verbose: *cmd.option.verbose,
+	}
+	err = cmd.git.Clone(url, pkgPath, gitOpts)
 	if err != nil {
 		return ErrCommandFailed
 	}
@@ -142,7 +147,7 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	return nil
 }
 
-func prepareInstallDirectories(cfg config.Config) error {
+func prepareInstallDirectories(cfg *config.Config) error {
 	if err := os.MkdirAll(cfg.PackagePath(), 0755); err != nil {
 		return err
 	}

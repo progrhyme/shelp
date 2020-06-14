@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	ErrConfig          = errors.New("Configuration error")
 	ErrUsage           = errors.New("Usage is shown")
 	ErrParseFailed     = errors.New("Cannot parse flags")
 	ErrArgument        = errors.New("Invalid argument")
@@ -26,13 +27,13 @@ var (
 
 type Cli struct {
 	version   string
-	config    config.Config
+	config    *config.Config
 	git       git.Git
 	outWriter io.Writer
 	errWriter io.Writer
 }
 
-func NewCli(ver string, cfg config.Config, g git.Git, out, err io.Writer) Cli {
+func NewCli(ver string, cfg *config.Config, g git.Git, out, err io.Writer) Cli {
 	return Cli{version: ver, config: cfg, git: g, outWriter: out, errWriter: err}
 }
 
@@ -89,11 +90,13 @@ func setupCmdFlags(cmd interface{}, name string, usage func()) {
 	switch v := cmd.(type) {
 	case verboseCommander:
 		option := cmd.(verboseCommander).verboseOpts()
+		option.setConfig(flags.StringP("config", "c", "", "# Configuration file"))
 		option.setHelp(flags.BoolP("help", "h", false, "# Show help"))
 		option.setVerbose(flags.BoolP("verbose", "v", false, "# Verbose output"))
 
 	case helpCommander:
 		option := cmd.(helpCommander).getOpts()
+		option.setConfig(flags.StringP("config", "c", "", "# Configuration file"))
 		option.setHelp(flags.BoolP("help", "h", false, "# Show help"))
 
 	default:
@@ -101,7 +104,9 @@ func setupCmdFlags(cmd interface{}, name string, usage func()) {
 	}
 }
 
-func parseStartHelp(cmd helpCommander, args []string, requireArg bool) (bool, error) {
+// Start parsing command-line arguments
+// Then, load configuration file if it exists
+func parseStart(cmd helpCommander, args []string, requireArg bool) (done bool, e error) {
 	if requireArg && len(args) == 0 {
 		cmd.flagset().Usage()
 		return true, ErrUsage
@@ -121,6 +126,14 @@ func parseStartHelp(cmd helpCommander, args []string, requireArg bool) (bool, er
 	if requireArg && cmd.flagset().NArg() == 0 {
 		cmd.flagset().Usage()
 		return true, ErrUsage
+	}
+
+	// Load config file
+	if err := cmd.getConf().LoadConfig(*cmd.getOpts().confFile()); err != nil {
+		return true, ErrConfig
+	}
+	if cmd.getConf().IsLoaded() {
+		fmt.Fprintf(cmd.errs(), "Use config: %s\n", cmd.getConf().File())
 	}
 
 	return false, nil

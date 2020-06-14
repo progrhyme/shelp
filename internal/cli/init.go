@@ -74,7 +74,7 @@ Options:
 }
 
 func (cmd *initCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(cmd, args, true)
+	done, err := parseStart(cmd, args, true)
 	if done || err != nil {
 		return err
 	}

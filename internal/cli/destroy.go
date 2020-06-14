@@ -42,7 +42,7 @@ Options:
 }
 
 func (cmd *destroyCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(cmd, args, false)
+	done, err := parseStart(cmd, args, false)
 	if done || err != nil {
 		return err
 	}

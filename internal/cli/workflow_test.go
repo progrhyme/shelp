@@ -14,7 +14,7 @@ import (
 type cliParam struct {
 	prog    string
 	version string
-	config  config.Config
+	config  *config.Config
 }
 
 type installParam struct {
@@ -49,9 +49,9 @@ func TestWorkflow(t *testing.T) {
 	os.Setenv(config.RootVarName, rootDir)
 	os.MkdirAll(rootDir, 0755)
 	os.MkdirAll(srcDir, 0755)
-	cfg := config.NewConfig()
+	cfg := config.NewConfig(os.Stdout, os.Stderr)
 
-	cparam := cliParam{prog, version, cfg}
+	cparam := cliParam{prog, version, &cfg}
 
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -87,7 +87,7 @@ func TestWorkflow(t *testing.T) {
 	gitCtl := git.NewGit(outStr, errStr)
 	installedPkgURL := fmt.Sprintf("file://%s", filepath.Join(cfg.PackagePath(), "bash-links"))
 	linkSrc := filepath.Join(srcDir, "bash-links")
-	err = gitCtl.Clone(installedPkgURL, linkSrc, "", false)
+	err = gitCtl.Clone(installedPkgURL, linkSrc, git.Option{})
 	if err != nil {
 		panic(fmt.Sprintf("Failed to git clone %s to %s", installedPkgURL, linkSrc))
 	}

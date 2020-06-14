@@ -10,10 +10,16 @@ import (
 )
 
 type Git struct {
-	cmd     string
-	out     io.Writer
-	err     io.Writer
-	shallow bool
+	cmd string
+	out io.Writer
+	err io.Writer
+}
+
+// Option for some operations to pass from outside of this package
+type Option struct {
+	Branch  string
+	Shallow bool
+	Verbose bool
 }
 
 func NewGit(out, err io.Writer) Git {
@@ -21,19 +27,19 @@ func NewGit(out, err io.Writer) Git {
 	if cmd == "" {
 		cmd = "git"
 	}
-	return Git{cmd: cmd, out: out, err: err, shallow: true}
+	return Git{cmd: cmd, out: out, err: err}
 }
 
-func (g *Git) Clone(src, dst, branch string, verbose bool) error {
+func (g *Git) Clone(src, dst string, opts Option) error {
 	args := []string{"clone", src}
-	if branch != "" {
-		args = append(args, fmt.Sprintf("--branch=%s", branch))
+	if opts.Branch != "" {
+		args = append(args, fmt.Sprintf("--branch=%s", opts.Branch))
 	}
-	if g.shallow {
+	if opts.Shallow {
 		args = append(args, "--depth=1")
 	}
 	args = append(args, dst)
-	return g.prepareCommand(args, verbose).Run()
+	return g.prepareCommand(args, opts.Verbose).Run()
 }
 
 func (g *Git) HasUpdate(verbose bool) (bool, error) {

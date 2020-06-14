@@ -45,7 +45,7 @@ func (cmd *removeCmd) parseAndExec(args []string) error {
 	cmd.name = args[0]
 	cmd.flags.Usage = cmd.usage
 
-	done, err := parseStartHelp(cmd, args[1:], true)
+	done, err := parseStart(cmd, args[1:], true)
 	if done || err != nil {
 		return err
 	}

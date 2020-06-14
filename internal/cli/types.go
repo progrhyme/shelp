@@ -18,7 +18,7 @@ type commander interface {
 
 // Meets commander interface
 type commonCmd struct {
-	config  config.Config
+	config  *config.Config
 	flags   pflag.FlagSet
 	out     io.Writer
 	err     io.Writer
@@ -26,7 +26,7 @@ type commonCmd struct {
 }
 
 func (cmd *commonCmd) getConf() *config.Config {
-	return &cmd.config
+	return cmd.config
 }
 
 func (cmd *commonCmd) outs() io.Writer {
@@ -47,19 +47,30 @@ func (cmd *commonCmd) setFlags(flags *pflag.FlagSet) {
 
 type flagger interface {
 	helpFlg() *bool
+	confFile() *string
 	setHelp(*bool)
+	setConfig(*string)
 }
 
 type commonFlags struct {
-	help *bool
+	help   *bool
+	config *string
 }
 
 func (flag *commonFlags) helpFlg() *bool {
 	return flag.help
 }
 
+func (flag *commonFlags) confFile() *string {
+	return flag.config
+}
+
 func (flag *commonFlags) setHelp(help *bool) {
 	flag.help = help
+}
+
+func (flag *commonFlags) setConfig(conf *string) {
+	flag.config = conf
 }
 
 type helpCommander interface {

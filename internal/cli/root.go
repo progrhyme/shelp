@@ -59,7 +59,7 @@ Options without subcommand:
 }
 
 func (cmd *rootCmd) parseAndExec(args []string) error {
-	done, err := parseStartHelp(cmd, args, false)
+	done, err := parseStart(cmd, args, false)
 	if done || err != nil {
 		return err
 	}
@@ -69,7 +69,10 @@ func (cmd *rootCmd) parseAndExec(args []string) error {
 		return nil
 	}
 
-	fmt.Fprintf(cmd.err, "Error! Subcommand not found: %s\n", cmd.flags.Arg(0))
+	if cmd.flags.NArg() > 0 {
+		fmt.Fprintf(cmd.err, "Error! Subcommand not found: %s\n", cmd.flags.Arg(0))
+	}
+
 	cmd.flags.Usage()
 	return ErrUsage
 }

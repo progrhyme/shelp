@@ -9,6 +9,7 @@ on:
       - 'CHANGELOG.md'
       - 'LICENSE'
       - 'Makefile'
+      - 'example/**'
 
 env:
   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

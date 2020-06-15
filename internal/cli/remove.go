@@ -50,31 +50,34 @@ func (cmd *removeCmd) parseAndExec(args []string) error {
 		return err
 	}
 
-	pkg := cmd.flags.Arg(0)
-	path := filepath.Join(cmd.config.PackagePath(), pkg)
+	return removePackage(cmd, cmd.flags.Arg(0))
+}
+
+func removePackage(cmd verboseCommander, name string) error {
+	path := filepath.Join(cmd.getConf().PackagePath(), name)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		fmt.Fprintf(cmd.err, "\"%s\" is not installed\n", pkg)
+		fmt.Fprintf(cmd.errs(), "\"%s\" is not installed\n", name)
 		return ErrArgument
 	}
 
-	if err = cmd.removeBinsLinks(path); err != nil {
+	if err := removeBinsLinks(cmd, path); err != nil {
 		return ErrOperationFailed
 	}
 
-	if err = os.RemoveAll(path); err != nil {
-		fmt.Fprintf(cmd.err, "Error! Package removal failed. Path = %s\n", path)
+	if err := os.RemoveAll(path); err != nil {
+		fmt.Fprintf(cmd.errs(), "Error! Package removal failed. Path = %s\n", path)
 		return ErrOperationFailed
 	}
 
-	fmt.Fprintf(cmd.out, "\"%s\" is removed\n", pkg)
+	fmt.Fprintf(cmd.outs(), "\"%s\" is removed\n", name)
 	return nil
 }
 
-func (cmd *removeCmd) removeBinsLinks(pkgPath string) error {
-	binPath := cmd.config.BinPath()
+func removeBinsLinks(cmd verboseCommander, pkgPath string) error {
+	binPath := cmd.getConf().BinPath()
 	bins, err := ioutil.ReadDir(binPath)
 	if err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
+		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
 		return err
 	}
 
@@ -82,15 +85,16 @@ func (cmd *removeCmd) removeBinsLinks(pkgPath string) error {
 		sym := filepath.Join(binPath, bin.Name())
 		src, err := os.Readlink(sym)
 		if err != nil {
-			fmt.Fprintf(cmd.err, "Warning! Failed to read link of %s. Error = %s\n", sym, err)
+			fmt.Fprintf(cmd.errs(), "Warning! Failed to read link of %s. Error = %s\n", sym, err)
 			continue
 		}
 		if strings.HasPrefix(src, pkgPath) {
-			if *cmd.option.verbose {
-				fmt.Fprintf(cmd.out, "Delete %s -> %s\n", sym, src)
+			if *cmd.verboseOpts().verboseFlg() {
+				fmt.Fprintf(cmd.outs(), "Delete %s -> %s\n", sym, src)
 			}
 			if err = os.Remove(sym); err != nil {
-				fmt.Fprintf(cmd.err, "Error! Deletion failed: %s. Error = %s\n", sym, err)
+				fmt.Fprintf(cmd.errs(), "Error! Deletion failed: %s. Error = %s\n", sym, err)
+				return err
 			}
 		}
 	}

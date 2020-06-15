@@ -104,6 +104,14 @@ Syntax:`,
 Syntax:`, config.RootVarName),
 	}
 
+	commands["bundle"] = command{
+		false,
+		`Summary:
+  Install packages at once which are defined in config file.
+
+Syntax:`,
+	}
+
 	initText := fmt.Sprintf(`export %s="%s"
 PATH="%s:${PATH}"
 
@@ -276,6 +284,22 @@ PATH="%s:${PATH}"
 			[]string{prog, "destroy", "--no-such-option"},
 			ErrParseFailed, "",
 			strings.Join([]string{flagError, commands["destroy"].helpText}, "\n"),
+		},
+
+		// Subcommand "bundle"
+		{
+			[]string{prog, "bundle"},
+			ErrCanceled, "",
+			strings.Join([]string{"No package is configured", commands["bundle"].helpText}, "\n"),
+		},
+		{
+			[]string{prog, "bundle", "--help"},
+			nil, "", commands["bundle"].helpText,
+		},
+		{
+			[]string{prog, "bundle", "--no-such-option"},
+			ErrParseFailed, "",
+			strings.Join([]string{flagError, commands["bundle"].helpText}, "\n"),
 		},
 	}
 

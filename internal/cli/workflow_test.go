@@ -11,24 +11,24 @@ import (
 	"github.com/progrhyme/shelp/internal/git"
 )
 
-type cliParam struct {
+type testCliParam struct {
 	prog    string
 	version string
 	config  *config.Config
 }
 
-type installParam struct {
+type testInstallParam struct {
 	args []string
 	pkg  string
 	bins []string
 }
 
-type removeParam struct {
+type testRemoveParam struct {
 	pkg  string
 	bins []string
 }
 
-type linkParam struct {
+type testLinkParam struct {
 	args []string
 	pkg  string
 	bins []string
@@ -51,7 +51,7 @@ func TestWorkflow(t *testing.T) {
 	os.MkdirAll(srcDir, 0755)
 	cfg := config.NewConfig(os.Stdout, os.Stderr)
 
-	cparam := cliParam{prog, version, &cfg}
+	cparam := testCliParam{prog, version, &cfg}
 
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -60,7 +60,7 @@ func TestWorkflow(t *testing.T) {
 	repoDir := strings.TrimSuffix(pwd, fmt.Sprintf("%cinternal%ccli", os.PathSeparator, os.PathSeparator))
 
 	// Install some packages
-	installParams := []installParam{
+	testInstallParams := []testInstallParam{
 		{
 			args: []string{"progrhyme/bash-links"},
 			pkg:  "bash-links",
@@ -77,7 +77,7 @@ func TestWorkflow(t *testing.T) {
 			bins: []string{},
 		},
 	}
-	testInstallPackages(t, installParams, cparam)
+	testInstallPackages(t, testInstallParams, cparam)
 
 	testListInstalled(t, []string{"bash-links", "shelp", "shove@v0.8.3"}, cparam)
 
@@ -93,15 +93,15 @@ func TestWorkflow(t *testing.T) {
 	}
 
 	// Remove some packages
-	removeParams := []removeParam{
+	testRemoveParams := []testRemoveParam{
 		{pkg: "bash-links", bins: []string{"links"}},
 	}
-	testRemovePackages(t, removeParams, cparam)
+	testRemovePackages(t, testRemoveParams, cparam)
 
 	testListInstalled(t, []string{"shelp", "shove@v0.8.3"}, cparam)
 
 	// Link some packages
-	linkParams := []linkParam{
+	testLinkParams := []testLinkParam{
 		{
 			args: []string{"."},
 			pkg:  "cli",
@@ -113,14 +113,14 @@ func TestWorkflow(t *testing.T) {
 			bins: []string{"links"},
 		},
 	}
-	testLinkPackages(t, linkParams, cparam)
+	testLinkPackages(t, testLinkParams, cparam)
 
 	testListInstalled(t, []string{"cli", "links", "shelp", "shove@v0.8.3"}, cparam)
 
-	removeParams = []removeParam{
+	testRemoveParams = []testRemoveParam{
 		{pkg: "links", bins: []string{"links"}},
 	}
-	testRemovePackages(t, removeParams, cparam)
+	testRemovePackages(t, testRemoveParams, cparam)
 
 	testListInstalled(t, []string{"cli", "shelp", "shove@v0.8.3"}, cparam)
 
@@ -131,7 +131,7 @@ func TestWorkflow(t *testing.T) {
 	os.RemoveAll(tmpDir)
 }
 
-func testInstallPackages(t *testing.T, targets []installParam, cp cliParam) {
+func testInstallPackages(t *testing.T, targets []testInstallParam, cp testCliParam) {
 	for _, target := range targets {
 		subtest := fmt.Sprintf("install %s", strings.Join(target.args, " "))
 		t.Run(subtest, func(t *testing.T) {
@@ -164,7 +164,7 @@ func testInstallPackages(t *testing.T, targets []installParam, cp cliParam) {
 	}
 }
 
-func testLinkPackages(t *testing.T, targets []linkParam, cp cliParam) {
+func testLinkPackages(t *testing.T, targets []testLinkParam, cp testCliParam) {
 	for _, target := range targets {
 		subtest := fmt.Sprintf("link %s", strings.Join(target.args, " "))
 		t.Run(subtest, func(t *testing.T) {
@@ -210,7 +210,7 @@ func testLinkPackages(t *testing.T, targets []linkParam, cp cliParam) {
 	}
 }
 
-func testListInstalled(t *testing.T, pkgs []string, cp cliParam) {
+func testListInstalled(t *testing.T, pkgs []string, cp testCliParam) {
 	t.Run("list", func(t *testing.T) {
 		outStr := &strings.Builder{}
 		errStr := &strings.Builder{}
@@ -231,7 +231,7 @@ func testListInstalled(t *testing.T, pkgs []string, cp cliParam) {
 	})
 }
 
-func testRemovePackages(t *testing.T, targets []removeParam, cp cliParam) {
+func testRemovePackages(t *testing.T, targets []testRemoveParam, cp testCliParam) {
 	for _, target := range targets {
 		subtest := fmt.Sprintf("remove %s", target.pkg)
 		t.Run(subtest, func(t *testing.T) {
@@ -259,7 +259,7 @@ func testRemovePackages(t *testing.T, targets []removeParam, cp cliParam) {
 	}
 }
 
-func testDestroy(t *testing.T, cp cliParam) {
+func testDestroy(t *testing.T, cp testCliParam) {
 	args := []string{"destroy", "--yes"}
 	t.Run(strings.Join(args, " "), func(t *testing.T) {
 		outStr := &strings.Builder{}

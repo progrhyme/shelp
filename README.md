@@ -6,17 +6,27 @@
 
 # Prerequisites
 
-`git` command is needed.
+- OS: Linux or macOS
+- Shell: Most POSIX compatible shells including Zsh. Tested on Bash & Zsh
+- `git` command installed
 
 # Installation
 ## Install Binary
 
-There are two ways to install `shelp` binary:
+There are several ways to install `shelp` :
 
+1. [Homebrew](https://brew.sh/) or [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux) (using Tap)
 1. Download from GitHub releases
 1. go get
 
 Let's see in details.
+
+### Homebrew (Linuxbrew)
+
+```sh
+brew tap progrhyme/taps
+brew install shelp
+```
 
 ### Download from releases
 

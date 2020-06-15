@@ -112,6 +112,14 @@ Syntax:`, config.RootVarName),
 Syntax:`,
 	}
 
+	commands["prune"] = command{
+		false,
+		`Summary:
+  Uninstall packages not defined in config file.
+
+Syntax:`,
+	}
+
 	initText := fmt.Sprintf(`export %s="%s"
 PATH="%s:${PATH}"
 
@@ -300,6 +308,21 @@ PATH="%s:${PATH}"
 			[]string{prog, "bundle", "--no-such-option"},
 			ErrParseFailed, "",
 			strings.Join([]string{flagError, commands["bundle"].helpText}, "\n"),
+		},
+
+		// Subcommand "prune"
+		{
+			[]string{prog, "prune"},
+			ErrNoPackage, "", "No package is installed",
+		},
+		{
+			[]string{prog, "prune", "--help"},
+			nil, "", commands["prune"].helpText,
+		},
+		{
+			[]string{prog, "prune", "--no-such-option"},
+			ErrParseFailed, "",
+			strings.Join([]string{flagError, commands["prune"].helpText}, "\n"),
 		},
 	}
 

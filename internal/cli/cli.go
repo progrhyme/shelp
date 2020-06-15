@@ -74,6 +74,9 @@ func (c *Cli) ParseAndExec(args []string) error {
 	case "bundle":
 		bundler := newBundleCmd(common, c.git)
 		return bundler.parseAndExec(args[2:])
+	case "prune":
+		pruner := newPruneCmd(common)
+		return pruner.parseAndExec(args[2:])
 	case "destroy":
 		destroyer := newDestroyCmd(common)
 		return destroyer.parseAndExec(args[2:])

@@ -24,7 +24,7 @@ func (cmd *bundleCmd) usage() {
   Install packages at once which are defined in config file.
 
 Syntax:
-  {{.Prog}} {{.Cmd}}
+  {{.Prog}} {{.Cmd}} [-c|--config CONFIG]
 
 Options:
 `
@@ -45,6 +45,12 @@ func (cmd *bundleCmd) parseAndExec(args []string) error {
 		return err
 	}
 
+	if len(cmd.config.Packages) == 0 {
+		fmt.Fprintln(cmd.err, "No package is configured")
+		cmd.flags.Usage()
+		return ErrCanceled
+	}
+
 	if err = prepareInstallDirectories(cmd.config); err != nil {
 		fmt.Fprintf(cmd.err, "Error! %s\n", err)
 		return ErrOperationFailed
@@ -55,21 +61,18 @@ func (cmd *bundleCmd) parseAndExec(args []string) error {
 		hasError bool
 	)
 	for _, param := range cmd.config.Packages {
-		if param.From != "" {
-			// Install package by Git
-			err = installPackage(cmd, installArgs{param.From, param.As, param.At, param.Bin})
-			switch err {
-			case nil, ErrAlreadyInstalled:
-				success++
-			default:
-				hasError = true
-			}
-			//} else if param.Link != "" {
-			// Link local package
-			//fmt.Fprintf(cmd.err, "TODO: link is not implemented yet. pkg = %+v\n", param)
-		} else {
-			//fmt.Fprintf(cmd.err, "Warning! Neither \"from\" nor \"link\" is specified. pkg = %+v\n", param)
+		if param.From == "" {
 			fmt.Fprintf(cmd.err, "Warning! \"from\" is not specified. Skips. pkg = %+v\n", param)
+			hasError = true
+
+		}
+
+		// Install one
+		err = installPackage(cmd, installArgs{param.From, param.As, param.At, param.Bin})
+		switch err {
+		case nil, ErrAlreadyInstalled:
+			success++
+		default:
 			hasError = true
 		}
 	}

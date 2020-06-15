@@ -25,6 +25,13 @@ type installArgs struct {
 	bin  []string
 }
 
+// shelp package params
+type shelpkg struct {
+	name   string
+	url    string
+	branch string
+}
+
 func newInstallCmd(common commonCmd, git git.Git) installCmd {
 	cmd := &installCmd{}
 	cmd.commonCmd = common
@@ -99,8 +106,8 @@ func prepareInstallDirectories(cfg *config.Config) error {
 	return os.MkdirAll(cfg.BinPath(), 0755)
 }
 
-func installPackage(cmd gitCommander, args installArgs) error {
-	var pkg, url, branch string
+func packageToInstall(cmd verboseCommander, args installArgs) (shelpkg, error) {
+	pkg := shelpkg{}
 	var re *regexp.Regexp
 
 	if args.as != "" {
@@ -110,9 +117,9 @@ func installPackage(cmd gitCommander, args installArgs) error {
 				cmd.errs(),
 				"Error! Given argument \"%s\" does not look like valid package name\n",
 				args.as)
-			return ErrArgument
+			return pkg, ErrArgument
 		}
-		pkg = args.as
+		pkg.name = args.as
 	}
 
 	re = regexp.MustCompile(`^(?:([\w\-\.]+)/)?([\w\-\.]+)/([\w\-\.]+)(?:@([\w\-\.]+))?$`)
@@ -124,35 +131,44 @@ func installPackage(cmd gitCommander, args installArgs) error {
 		}
 		account := matched[2]
 		repo := matched[3]
-		branch = matched[4]
-		url = fmt.Sprintf("https://%s/%s/%s.git", site, account, repo)
-		if pkg == "" {
-			pkg = repo
+		pkg.branch = matched[4]
+		pkg.url = fmt.Sprintf("https://%s/%s/%s.git", site, account, repo)
+		if pkg.name == "" {
+			pkg.name = repo
 		}
 	} else {
-		url = args.from
-		if pkg == "" {
-			pkg = strings.TrimSuffix(filepath.Base(url), ".git")
+		pkg.url = args.from
+		if pkg.name == "" {
+			pkg.name = strings.TrimSuffix(filepath.Base(pkg.url), ".git")
 		}
 	}
 
 	if args.at != "" {
-		branch = args.at
+		pkg.branch = args.at
 	}
 
-	pkgPath := filepath.Join(cmd.getConf().PackagePath(), pkg)
+	return pkg, nil
+}
+
+func installPackage(cmd gitCommander, args installArgs) error {
+	pkg, err := packageToInstall(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	pkgPath := filepath.Join(cmd.getConf().PackagePath(), pkg.name)
 	if _, err := os.Stat(pkgPath); !os.IsNotExist(err) {
-		fmt.Fprintf(cmd.errs(), "\"%s\" is already installed\n", pkg)
+		fmt.Fprintf(cmd.errs(), "\"%s\" is already installed\n", pkg.name)
 		return ErrAlreadyInstalled
 	}
 
-	fmt.Fprintf(cmd.outs(), "Fetching \"%s\" from %s ...\n", pkg, url)
+	fmt.Fprintf(cmd.outs(), "Fetching \"%s\" from %s ...\n", pkg.name, pkg.url)
 	gitOpts := git.Option{
-		Branch:  branch,
+		Branch:  pkg.branch,
 		Shallow: cmd.getConf().Git.Shallow,
 		Verbose: *cmd.verboseOpts().verboseFlg(),
 	}
-	err := cmd.gitCtl().Clone(url, pkgPath, gitOpts)
+	err = cmd.gitCtl().Clone(pkg.url, pkgPath, gitOpts)
 	if err != nil {
 		return ErrCommandFailed
 	}
@@ -171,11 +187,11 @@ func installPackage(cmd gitCommander, args installArgs) error {
 		}
 	}
 	if linkErr != nil {
-		fmt.Fprintf(cmd.errs(), "\"%s\" is installed, but with some failures\n", pkg)
+		fmt.Fprintf(cmd.errs(), "\"%s\" is installed, but with some failures\n", pkg.name)
 		return linkErr
 	}
 
-	fmt.Fprintf(cmd.outs(), "\"%s\" is successfully installed\n", pkg)
+	fmt.Fprintf(cmd.outs(), "\"%s\" is successfully installed\n", pkg.name)
 	return nil
 }
 

@@ -8,36 +8,36 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type commander interface {
-	getConf() *config.Config
-	outs() io.Writer
-	errs() io.Writer
-	flagset() *pflag.FlagSet
+type runner interface {
+	getConfig() *config.Config
+	getOuts() io.Writer
+	getErrs() io.Writer
+	getFlags() *pflag.FlagSet
 	setFlags(*pflag.FlagSet)
 }
 
-// Meets commander interface
+// Meets runner interface
 type commonCmd struct {
-	config  *config.Config
-	flags   pflag.FlagSet
-	out     io.Writer
-	err     io.Writer
-	command string
+	config *config.Config
+	flags  pflag.FlagSet
+	outs   io.Writer
+	errs   io.Writer
+	name   string
 }
 
-func (cmd *commonCmd) getConf() *config.Config {
+func (cmd *commonCmd) getConfig() *config.Config {
 	return cmd.config
 }
 
-func (cmd *commonCmd) outs() io.Writer {
-	return cmd.out
+func (cmd *commonCmd) getOuts() io.Writer {
+	return cmd.outs
 }
 
-func (cmd *commonCmd) errs() io.Writer {
-	return cmd.err
+func (cmd *commonCmd) getErrs() io.Writer {
+	return cmd.errs
 }
 
-func (cmd *commonCmd) flagset() *pflag.FlagSet {
+func (cmd *commonCmd) getFlags() *pflag.FlagSet {
 	return &cmd.flags
 }
 
@@ -45,88 +45,89 @@ func (cmd *commonCmd) setFlags(flags *pflag.FlagSet) {
 	cmd.flags = *flags
 }
 
-type flagger interface {
-	helpFlg() *bool
-	confFile() *string
+type flavor interface {
+	getHelp() *bool
+	getConfig() *string
 	setHelp(*bool)
 	setConfig(*string)
 }
 
-type commonFlags struct {
+type commonOpts struct {
 	help   *bool
 	config *string
 }
 
-func (flag *commonFlags) helpFlg() *bool {
+func (flag *commonOpts) getHelp() *bool {
 	return flag.help
 }
 
-func (flag *commonFlags) confFile() *string {
+func (flag *commonOpts) getConfig() *string {
 	return flag.config
 }
 
-func (flag *commonFlags) setHelp(help *bool) {
+func (flag *commonOpts) setHelp(help *bool) {
 	flag.help = help
 }
 
-func (flag *commonFlags) setConfig(conf *string) {
+func (flag *commonOpts) setConfig(conf *string) {
 	flag.config = conf
 }
 
-type helpCommander interface {
-	commander
-	getOpts() flagger
+type helpRunner interface {
+	runner
+	getOpts() flavor
 }
 
 type helpCmd struct {
 	commonCmd
-	option commonFlags
+	option commonOpts
 }
 
-func (cmd *helpCmd) getOpts() flagger {
+func (cmd *helpCmd) getOpts() flavor {
 	return &cmd.option
 }
 
-type verboseFlagger interface {
-	flagger
-	verboseFlg() *bool
+type verboseFlavor interface {
+	flavor
+	getVerbose() *bool
 	setVerbose(*bool)
 }
 
-type verboseFlags struct {
-	commonFlags
+type verboseOpts struct {
+	commonOpts
 	verbose *bool
 }
 
-func (flag *verboseFlags) verboseFlg() *bool {
+func (flag *verboseOpts) getVerbose() *bool {
 	return flag.verbose
 }
 
-func (flag *verboseFlags) setVerbose(verbose *bool) {
+func (flag *verboseOpts) setVerbose(verbose *bool) {
 	flag.verbose = verbose
 }
 
-type verboseCommander interface {
-	commander
-	verboseOpts() verboseFlagger
+type verboseRunner interface {
+	runner
+	getVerboseOpts() verboseFlavor
 }
 
+// verboseCmd meets both helpRunner & verboseRunner interfaces
 type verboseCmd struct {
 	commonCmd
-	option verboseFlags
+	option verboseOpts
 }
 
-func (cmd *verboseCmd) getOpts() flagger {
+func (cmd *verboseCmd) getOpts() flavor {
 	return &cmd.option
 }
 
-func (cmd *verboseCmd) verboseOpts() verboseFlagger {
+func (cmd *verboseCmd) getVerboseOpts() verboseFlavor {
 	return &cmd.option
 }
 
-type gitCommander interface {
-	verboseCommander
-	gitCtl() *git.Git
+type gitRunner interface {
+	verboseRunner
+	getGit() *git.Git
 }
 
 type gitCmd struct {
@@ -134,6 +135,6 @@ type gitCmd struct {
 	git git.Git
 }
 
-func (cmd *gitCmd) gitCtl() *git.Git {
+func (cmd *gitCmd) getGit() *git.Git {
 	return &cmd.git
 }

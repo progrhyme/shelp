@@ -15,7 +15,7 @@ import (
 
 type installCmd struct {
 	gitCmd
-	name string
+	command string
 }
 
 type installArgs struct {
@@ -69,9 +69,9 @@ Options:
 `
 
 	t := template.Must(template.New("usage").Parse(help))
-	t.Execute(cmd.err, struct{ Prog, Cmd string }{cmd.command, cmd.name})
+	t.Execute(cmd.errs, struct{ Prog, Cmd string }{cmd.name, cmd.command})
 	cmd.flags.PrintDefaults()
-	fmt.Fprintf(cmd.err, `
+	fmt.Fprintf(cmd.errs, `
 Limitation:
   1. This command always clones repository as shallow one, with "--depth=1" option
   2. You can't specify "--branch" option in the latter command syntax, nor others
@@ -79,7 +79,7 @@ Limitation:
 }
 
 func (cmd *installCmd) parseAndExec(args []string) error {
-	cmd.name = args[0]
+	cmd.command = args[0]
 	cmd.flags.Usage = cmd.usage
 
 	done, err := parseStart(cmd, args[1:], true)
@@ -88,7 +88,7 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	}
 
 	if err = prepareInstallDirectories(cmd.config); err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
+		fmt.Fprintf(cmd.errs, "Error! %s\n", err)
 		return ErrOperationFailed
 	}
 
@@ -106,7 +106,7 @@ func prepareInstallDirectories(cfg *config.Config) error {
 	return os.MkdirAll(cfg.BinPath(), 0755)
 }
 
-func packageToInstall(cmd verboseCommander, args installArgs) (shelpkg, error) {
+func packageToInstall(cmd verboseRunner, args installArgs) (shelpkg, error) {
 	pkg := shelpkg{}
 	var re *regexp.Regexp
 
@@ -114,7 +114,7 @@ func packageToInstall(cmd verboseCommander, args installArgs) (shelpkg, error) {
 		re = regexp.MustCompile(`^\w+`)
 		if !re.MatchString(args.as) {
 			fmt.Fprintf(
-				cmd.errs(),
+				cmd.getErrs(),
 				"Error! Given argument \"%s\" does not look like valid package name\n",
 				args.as)
 			return pkg, ErrArgument
@@ -150,25 +150,25 @@ func packageToInstall(cmd verboseCommander, args installArgs) (shelpkg, error) {
 	return pkg, nil
 }
 
-func installPackage(cmd gitCommander, args installArgs) error {
+func installPackage(cmd gitRunner, args installArgs) error {
 	pkg, err := packageToInstall(cmd, args)
 	if err != nil {
 		return err
 	}
 
-	pkgPath := filepath.Join(cmd.getConf().PackagePath(), pkg.name)
+	pkgPath := filepath.Join(cmd.getConfig().PackagePath(), pkg.name)
 	if _, err := os.Stat(pkgPath); !os.IsNotExist(err) {
-		fmt.Fprintf(cmd.errs(), "\"%s\" is already installed\n", pkg.name)
+		fmt.Fprintf(cmd.getErrs(), "\"%s\" is already installed\n", pkg.name)
 		return ErrAlreadyInstalled
 	}
 
-	fmt.Fprintf(cmd.outs(), "Fetching \"%s\" from %s ...\n", pkg.name, pkg.url)
+	fmt.Fprintf(cmd.getOuts(), "Fetching \"%s\" from %s ...\n", pkg.name, pkg.url)
 	gitOpts := git.Option{
 		Branch:  pkg.branch,
-		Shallow: cmd.getConf().Git.Shallow,
-		Verbose: *cmd.verboseOpts().verboseFlg(),
+		Shallow: cmd.getConfig().Git.Shallow,
+		Verbose: *cmd.getVerboseOpts().getVerbose(),
 	}
-	err = cmd.gitCtl().Clone(pkg.url, pkgPath, gitOpts)
+	err = cmd.getGit().Clone(pkg.url, pkgPath, gitOpts)
 	if err != nil {
 		return ErrCommandFailed
 	}
@@ -187,18 +187,18 @@ func installPackage(cmd gitCommander, args installArgs) error {
 		}
 	}
 	if linkErr != nil {
-		fmt.Fprintf(cmd.errs(), "\"%s\" is installed, but with some failures\n", pkg.name)
+		fmt.Fprintf(cmd.getErrs(), "\"%s\" is installed, but with some failures\n", pkg.name)
 		return linkErr
 	}
 
-	fmt.Fprintf(cmd.outs(), "\"%s\" is successfully installed\n", pkg.name)
+	fmt.Fprintf(cmd.getOuts(), "\"%s\" is successfully installed\n", pkg.name)
 	return nil
 }
 
-func createLinksByBinDir(cmd verboseCommander, path string) error {
+func createLinksByBinDir(cmd verboseRunner, path string) error {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
+		fmt.Fprintf(cmd.getErrs(), "Error! %s\n", err)
 		return ErrOperationFailed
 	}
 
@@ -224,18 +224,18 @@ func createLinksByBinDir(cmd verboseCommander, path string) error {
 	return nil
 }
 
-func createLinkByBinAndDir(cmd verboseCommander, bin, path string) error {
+func createLinkByBinAndDir(cmd verboseRunner, bin, path string) error {
 	exe := filepath.Join(path, bin)
-	sym := filepath.Join(cmd.getConf().BinPath(), filepath.Base(bin))
-	if *cmd.verboseOpts().verboseFlg() {
-		fmt.Fprintf(cmd.outs(), "Symlink: %s -> %s\n", sym, exe)
+	sym := filepath.Join(cmd.getConfig().BinPath(), filepath.Base(bin))
+	if *cmd.getVerboseOpts().getVerbose() {
+		fmt.Fprintf(cmd.getOuts(), "Symlink: %s -> %s\n", sym, exe)
 	}
 	if _, err := os.Stat(sym); !os.IsNotExist(err) {
-		fmt.Fprintf(cmd.errs(), "Warning! Can't create link of %s which already exists\n", exe)
+		fmt.Fprintf(cmd.getErrs(), "Warning! Can't create link of %s which already exists\n", exe)
 		return ErrWarning
 	}
 	if err := os.Symlink(exe, sym); err != nil {
-		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
+		fmt.Fprintf(cmd.getErrs(), "Error! %s\n", err)
 		return ErrOperationFailed
 	}
 	return nil

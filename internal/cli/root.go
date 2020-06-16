@@ -10,11 +10,11 @@ type rootCmd struct {
 	version string
 	option  struct {
 		version *bool
-		commonFlags
+		commonOpts
 	}
 }
 
-func (cmd *rootCmd) getOpts() flagger {
+func (cmd *rootCmd) getOpts() flavor {
 	return &cmd.option
 }
 
@@ -55,7 +55,7 @@ Options without subcommand:
 `
 
 	t := template.Must(template.New("usage").Parse(help))
-	t.Execute(cmd.err, struct{ Prog string }{cmd.command})
+	t.Execute(cmd.errs, struct{ Prog string }{cmd.name})
 
 	cmd.flags.PrintDefaults()
 }
@@ -67,12 +67,12 @@ func (cmd *rootCmd) parseAndExec(args []string) error {
 	}
 
 	if *cmd.option.version {
-		fmt.Fprintf(cmd.out, "Version: %s\n", cmd.version)
+		fmt.Fprintf(cmd.outs, "Version: %s\n", cmd.version)
 		return nil
 	}
 
 	if cmd.flags.NArg() > 0 {
-		fmt.Fprintf(cmd.err, "Error! Subcommand not found: %s\n", cmd.flags.Arg(0))
+		fmt.Fprintf(cmd.errs, "Error! Subcommand not found: %s\n", cmd.flags.Arg(0))
 	}
 
 	cmd.flags.Usage()

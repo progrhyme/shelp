@@ -30,9 +30,9 @@ Options:
 `
 
 	t := template.Must(template.New("usage").Parse(help))
-	t.Execute(cmd.err, struct{ Prog, Cmd string }{cmd.command, "bundle"})
+	t.Execute(cmd.errs, struct{ Prog, Cmd string }{cmd.name, "bundle"})
 	cmd.flags.PrintDefaults()
-	fmt.Fprintf(cmd.err, `
+	fmt.Fprintf(cmd.errs, `
 Limitation:
   Re-installation of existing package is not supported yet.
   To do this, you have to remove it beforehand.
@@ -46,13 +46,13 @@ func (cmd *bundleCmd) parseAndExec(args []string) error {
 	}
 
 	if len(cmd.config.Packages) == 0 {
-		fmt.Fprintln(cmd.err, "No package is configured")
+		fmt.Fprintln(cmd.errs, "No package is configured")
 		cmd.flags.Usage()
 		return ErrCanceled
 	}
 
 	if err = prepareInstallDirectories(cmd.config); err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
+		fmt.Fprintf(cmd.errs, "Error! %s\n", err)
 		return ErrOperationFailed
 	}
 
@@ -62,7 +62,7 @@ func (cmd *bundleCmd) parseAndExec(args []string) error {
 	)
 	for _, param := range cmd.config.Packages {
 		if param.From == "" {
-			fmt.Fprintf(cmd.err, "Warning! \"from\" is not specified. Skips. pkg = %+v\n", param)
+			fmt.Fprintf(cmd.errs, "Warning! \"from\" is not specified. Skips. pkg = %+v\n", param)
 			hasError = true
 
 		}
@@ -79,10 +79,10 @@ func (cmd *bundleCmd) parseAndExec(args []string) error {
 
 	if hasError {
 		if success > 0 {
-			fmt.Fprintln(cmd.err, "There are some errors")
+			fmt.Fprintln(cmd.errs, "There are some errors")
 			return ErrWarning
 		} else {
-			fmt.Fprintln(cmd.err, "Bundle failed")
+			fmt.Fprintln(cmd.errs, "Bundle failed")
 			return ErrOperationFailed
 		}
 	}

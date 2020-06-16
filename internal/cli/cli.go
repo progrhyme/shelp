@@ -41,7 +41,7 @@ func NewCli(ver string, cfg *config.Config, g git.Git, out, err io.Writer) Cli {
 func (c *Cli) ParseAndExec(args []string) error {
 	prog := filepath.Base(args[0])
 
-	common := commonCmd{config: c.config, out: c.outWriter, err: c.errWriter, command: prog}
+	common := commonCmd{config: c.config, outs: c.outWriter, errs: c.errWriter, name: prog}
 	root := newRootCmd(common, c.version)
 
 	if len(args) == 1 {
@@ -87,22 +87,22 @@ func (c *Cli) ParseAndExec(args []string) error {
 
 func setupCmdFlags(cmd interface{}, name string, usage func()) {
 	flags := pflag.NewFlagSet(name, pflag.ContinueOnError)
-	cmd.(commander).setFlags(flags)
-	flags = cmd.(commander).flagset()
-	flags.SetOutput(cmd.(commander).errs())
+	cmd.(runner).setFlags(flags)
+	flags = cmd.(runner).getFlags()
+	flags.SetOutput(cmd.(runner).getErrs())
 	if usage != nil {
 		flags.Usage = usage
 	}
 
 	switch v := cmd.(type) {
-	case verboseCommander:
-		option := cmd.(verboseCommander).verboseOpts()
+	case verboseRunner:
+		option := cmd.(verboseRunner).getVerboseOpts()
 		option.setConfig(flags.StringP("config", "c", "", "# Configuration file"))
 		option.setHelp(flags.BoolP("help", "h", false, "# Show help"))
 		option.setVerbose(flags.BoolP("verbose", "v", false, "# Verbose output"))
 
-	case helpCommander:
-		option := cmd.(helpCommander).getOpts()
+	case helpRunner:
+		option := cmd.(helpRunner).getOpts()
 		option.setConfig(flags.StringP("config", "c", "", "# Configuration file"))
 		option.setHelp(flags.BoolP("help", "h", false, "# Show help"))
 
@@ -113,56 +113,56 @@ func setupCmdFlags(cmd interface{}, name string, usage func()) {
 
 // Start parsing command-line arguments
 // Then, load configuration file if it exists
-func parseStart(cmd helpCommander, args []string, requireArg bool) (done bool, e error) {
+func parseStart(cmd helpRunner, args []string, requireArg bool) (done bool, e error) {
 	if requireArg && len(args) == 0 {
-		cmd.flagset().Usage()
+		cmd.getFlags().Usage()
 		return true, ErrUsage
 	}
 
-	if err := cmd.flagset().Parse(args); err != nil {
-		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
-		cmd.flagset().Usage()
+	if err := cmd.getFlags().Parse(args); err != nil {
+		fmt.Fprintf(cmd.getErrs(), "Error! %s\n", err)
+		cmd.getFlags().Usage()
 		return true, ErrParseFailed
 	}
 
-	if *cmd.getOpts().helpFlg() {
-		cmd.flagset().Usage()
+	if *cmd.getOpts().getHelp() {
+		cmd.getFlags().Usage()
 		return true, nil
 	}
 
-	if requireArg && cmd.flagset().NArg() == 0 {
-		cmd.flagset().Usage()
+	if requireArg && cmd.getFlags().NArg() == 0 {
+		cmd.getFlags().Usage()
 		return true, ErrUsage
 	}
 
 	// Load config file
-	if err := cmd.getConf().LoadConfig(*cmd.getOpts().confFile()); err != nil {
+	if err := cmd.getConfig().LoadConfig(*cmd.getOpts().getConfig()); err != nil {
 		return true, ErrConfig
 	}
-	if cmd.getConf().IsLoaded() {
-		fmt.Fprintf(cmd.errs(), "Use config: %s\n", cmd.getConf().File())
+	if cmd.getConfig().IsLoaded() {
+		fmt.Fprintf(cmd.getErrs(), "Use config: %s\n", cmd.getConfig().File())
 	}
 
 	return false, nil
 }
 
-func installedPackages(cmd commander, noPkgErr bool) ([]os.FileInfo, error) {
+func installedPackages(cmd runner, noPkgErr bool) ([]os.FileInfo, error) {
 	var pkgs []os.FileInfo
 	nopkg := func() ([]os.FileInfo, error) {
-		fmt.Fprintln(cmd.errs(), "No package is installed")
+		fmt.Fprintln(cmd.getErrs(), "No package is installed")
 		if noPkgErr {
 			return pkgs, ErrNoPackage
 		} else {
 			return pkgs, nil
 		}
 	}
-	if _, err := os.Stat(cmd.getConf().PackagePath()); os.IsNotExist(err) {
+	if _, err := os.Stat(cmd.getConfig().PackagePath()); os.IsNotExist(err) {
 		return nopkg()
 	}
 
-	pkgs, err := ioutil.ReadDir(cmd.getConf().PackagePath())
+	pkgs, err := ioutil.ReadDir(cmd.getConfig().PackagePath())
 	if err != nil {
-		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
+		fmt.Fprintf(cmd.getErrs(), "Error! %s\n", err)
 		return pkgs, ErrOperationFailed
 	}
 

@@ -37,7 +37,7 @@ Options:
 `
 
 	t := template.Must(template.New("usage").Parse(help))
-	t.Execute(cmd.err, struct{ Prog, Cmd string }{cmd.command, "link"})
+	t.Execute(cmd.errs, struct{ Prog, Cmd string }{cmd.name, "link"})
 
 	cmd.flags.PrintDefaults()
 }
@@ -50,18 +50,18 @@ func (cmd *linkCmd) parseAndExec(args []string) error {
 
 	src := cmd.flags.Arg(0)
 	if _, err := os.Stat(src); os.IsNotExist(err) {
-		fmt.Fprintf(cmd.err, "Error! \"%s\" does not exist\n", src)
+		fmt.Fprintf(cmd.errs, "Error! \"%s\" does not exist\n", src)
 		return ErrArgument
 	}
 	path, err := filepath.Abs(src)
 	if err != nil {
-		fmt.Fprintf(cmd.err, "Error! Can't resolve path of \"%s\"\n", src)
+		fmt.Fprintf(cmd.errs, "Error! Can't resolve path of \"%s\"\n", src)
 		return ErrArgument
 	}
 	base := filepath.Base(path)
 
 	if err = prepareInstallDirectories(cmd.config); err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
+		fmt.Fprintf(cmd.errs, "Error! %s\n", err)
 		return ErrOperationFailed
 	}
 
@@ -70,7 +70,7 @@ func (cmd *linkCmd) parseAndExec(args []string) error {
 		re := regexp.MustCompile(`^\w+`)
 		if !re.MatchString(cmd.flags.Arg(1)) {
 			fmt.Fprintf(
-				cmd.err,
+				cmd.errs,
 				"Error! Given argument \"%s\" does not look like valid package name\n",
 				cmd.flags.Arg(1))
 			return ErrArgument
@@ -81,12 +81,12 @@ func (cmd *linkCmd) parseAndExec(args []string) error {
 	}
 	pkgPath := filepath.Join(cmd.config.PackagePath(), pkg)
 	if _, err := os.Stat(pkgPath); !os.IsNotExist(err) {
-		fmt.Fprintf(cmd.err, "\"%s\" is already installed\n", pkg)
+		fmt.Fprintf(cmd.errs, "\"%s\" is already installed\n", pkg)
 		return ErrArgument
 	}
 
 	if err = os.Symlink(path, pkgPath); err != nil {
-		fmt.Fprintf(cmd.err, "Error! %s\n", err)
+		fmt.Fprintf(cmd.errs, "Error! %s\n", err)
 		return ErrOperationFailed
 	}
 
@@ -98,10 +98,10 @@ func (cmd *linkCmd) parseAndExec(args []string) error {
 		linkErr = createLinksByBinDir(cmd, pkgPath)
 	}
 	if linkErr != nil {
-		fmt.Fprintf(cmd.err, "\"%s\" is linked as package \"%s\", but with some failures\n", src, pkg)
+		fmt.Fprintf(cmd.errs, "\"%s\" is linked as package \"%s\", but with some failures\n", src, pkg)
 		return linkErr
 	}
 
-	fmt.Fprintf(cmd.out, "\"%s\" is linked as package \"%s\"\n", src, pkg)
+	fmt.Fprintf(cmd.outs, "\"%s\" is linked as package \"%s\"\n", src, pkg)
 	return nil
 }

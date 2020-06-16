@@ -11,7 +11,7 @@ import (
 
 type removeCmd struct {
 	verboseCmd
-	name string
+	command string
 }
 
 func newRemoveCmd(common commonCmd) removeCmd {
@@ -36,13 +36,13 @@ Options:
 `
 
 	t := template.Must(template.New("usage").Parse(help))
-	t.Execute(cmd.err, struct{ Prog, Cmd string }{cmd.command, cmd.name})
+	t.Execute(cmd.errs, struct{ Prog, Cmd string }{cmd.name, cmd.command})
 
 	cmd.flags.PrintDefaults()
 }
 
 func (cmd *removeCmd) parseAndExec(args []string) error {
-	cmd.name = args[0]
+	cmd.command = args[0]
 	cmd.flags.Usage = cmd.usage
 
 	done, err := parseStart(cmd, args[1:], true)
@@ -53,10 +53,10 @@ func (cmd *removeCmd) parseAndExec(args []string) error {
 	return removePackage(cmd, cmd.flags.Arg(0))
 }
 
-func removePackage(cmd verboseCommander, name string) error {
-	path := filepath.Join(cmd.getConf().PackagePath(), name)
+func removePackage(cmd verboseRunner, name string) error {
+	path := filepath.Join(cmd.getConfig().PackagePath(), name)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		fmt.Fprintf(cmd.errs(), "\"%s\" is not installed\n", name)
+		fmt.Fprintf(cmd.getErrs(), "\"%s\" is not installed\n", name)
 		return ErrArgument
 	}
 
@@ -65,19 +65,19 @@ func removePackage(cmd verboseCommander, name string) error {
 	}
 
 	if err := os.RemoveAll(path); err != nil {
-		fmt.Fprintf(cmd.errs(), "Error! Package removal failed. Path = %s\n", path)
+		fmt.Fprintf(cmd.getErrs(), "Error! Package removal failed. Path = %s\n", path)
 		return ErrOperationFailed
 	}
 
-	fmt.Fprintf(cmd.outs(), "\"%s\" is removed\n", name)
+	fmt.Fprintf(cmd.getOuts(), "\"%s\" is removed\n", name)
 	return nil
 }
 
-func removeBinsLinks(cmd verboseCommander, pkgPath string) error {
-	binPath := cmd.getConf().BinPath()
+func removeBinsLinks(cmd verboseRunner, pkgPath string) error {
+	binPath := cmd.getConfig().BinPath()
 	bins, err := ioutil.ReadDir(binPath)
 	if err != nil {
-		fmt.Fprintf(cmd.errs(), "Error! %s\n", err)
+		fmt.Fprintf(cmd.getErrs(), "Error! %s\n", err)
 		return err
 	}
 
@@ -85,15 +85,15 @@ func removeBinsLinks(cmd verboseCommander, pkgPath string) error {
 		sym := filepath.Join(binPath, bin.Name())
 		src, err := os.Readlink(sym)
 		if err != nil {
-			fmt.Fprintf(cmd.errs(), "Warning! Failed to read link of %s. Error = %s\n", sym, err)
+			fmt.Fprintf(cmd.getErrs(), "Warning! Failed to read link of %s. Error = %s\n", sym, err)
 			continue
 		}
 		if strings.HasPrefix(src, pkgPath) {
-			if *cmd.verboseOpts().verboseFlg() {
-				fmt.Fprintf(cmd.outs(), "Delete %s -> %s\n", sym, src)
+			if *cmd.getVerboseOpts().getVerbose() {
+				fmt.Fprintf(cmd.getOuts(), "Delete %s -> %s\n", sym, src)
 			}
 			if err = os.Remove(sym); err != nil {
-				fmt.Fprintf(cmd.errs(), "Error! Deletion failed: %s. Error = %s\n", sym, err)
+				fmt.Fprintf(cmd.getErrs(), "Error! Deletion failed: %s. Error = %s\n", sym, err)
 				return err
 			}
 		}

@@ -16,14 +16,14 @@ func newListCmd(common commonCmd) listCmd {
 }
 
 func (cmd *listCmd) usage() {
-	fmt.Fprintf(cmd.err, `Summary:
+	fmt.Fprintf(cmd.errs, `Summary:
   List installed packages.
 
 Syntax:
   %s list
 
 Options:
-`, cmd.command)
+`, cmd.name)
 	cmd.flags.PrintDefaults()
 }
 
@@ -39,7 +39,7 @@ func (cmd *listCmd) parseAndExec(args []string) error {
 	}
 
 	for _, pkg := range pkgs {
-		fmt.Fprintln(cmd.out, pkg.Name())
+		fmt.Fprintln(cmd.outs, pkg.Name())
 	}
 
 	return nil

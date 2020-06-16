@@ -34,7 +34,7 @@ Options:
 `
 
 	t := template.Must(template.New("usage").Parse(help))
-	t.Execute(cmd.err, struct{ Prog, Cmd string }{cmd.command, "outdated"})
+	t.Execute(cmd.errs, struct{ Prog, Cmd string }{cmd.name, "outdated"})
 
 	cmd.flags.PrintDefaults()
 }
@@ -62,10 +62,10 @@ func (cmd *outdatedCmd) parseAndExec(args []string) error {
 		}
 
 		if old {
-			fmt.Fprintln(cmd.out, pkg.Name())
+			fmt.Fprintln(cmd.outs, pkg.Name())
 		} else {
 			if *cmd.option.verbose {
-				fmt.Fprintf(cmd.err, "%s is up-to-date\n", pkg.Name())
+				fmt.Fprintf(cmd.errs, "%s is up-to-date\n", pkg.Name())
 			}
 		}
 	}
@@ -73,26 +73,26 @@ func (cmd *outdatedCmd) parseAndExec(args []string) error {
 	return nil
 }
 
-func hasPackageUpdate(cmd gitCommander, name string) (bool, error) {
-	path := filepath.Join(cmd.getConf().PackagePath(), name)
-	if *cmd.verboseOpts().verboseFlg() {
-		fmt.Fprintf(cmd.errs(), "[Info] Checking %s ...\n", name)
+func hasPackageUpdate(cmd gitRunner, name string) (bool, error) {
+	path := filepath.Join(cmd.getConfig().PackagePath(), name)
+	if *cmd.getVerboseOpts().getVerbose() {
+		fmt.Fprintf(cmd.getErrs(), "[Info] Checking %s ...\n", name)
 	}
 	link, err := os.Readlink(path)
 	if link != "" {
 		if err != nil {
 			// Just in case
-			fmt.Fprintf(cmd.errs(), "Error! Reading link failed. Path = %s\n", path)
+			fmt.Fprintf(cmd.getErrs(), "Error! Reading link failed. Path = %s\n", path)
 		}
-		if *cmd.verboseOpts().verboseFlg() {
-			fmt.Fprintln(cmd.errs(), "[Info] Symbolic link. Skip")
+		if *cmd.getVerboseOpts().getVerbose() {
+			fmt.Fprintln(cmd.getErrs(), "[Info] Symbolic link. Skip")
 		}
 		return false, nil
 	}
 
 	if err = os.Chdir(path); err != nil {
-		fmt.Fprintf(cmd.errs(), "Error! Directory change failed. Path = %s\n", path)
+		fmt.Fprintf(cmd.getErrs(), "Error! Directory change failed. Path = %s\n", path)
 		return false, ErrOperationFailed
 	}
-	return cmd.gitCtl().HasUpdate(*cmd.verboseOpts().verboseFlg())
+	return cmd.getGit().HasUpdate(*cmd.getVerboseOpts().getVerbose())
 }

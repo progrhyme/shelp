@@ -68,7 +68,7 @@ Options:
 `
 
 	t := template.Must(template.New("usage").Parse(help))
-	t.Execute(cmd.err, struct{ Prog, Profile string }{cmd.command, cmd.shProf})
+	t.Execute(cmd.errs, struct{ Prog, Profile string }{cmd.name, cmd.shProf})
 
 	cmd.flags.PrintDefaults()
 }
@@ -91,7 +91,7 @@ func (cmd *initCmd) parseAndExec(args []string) error {
 	}
 
 	if print {
-		cmd.printInitShellScripts(cmd.out)
+		cmd.printInitShellScripts(cmd.outs)
 	} else {
 		cmd.flags.Usage()
 		return nil

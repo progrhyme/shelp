@@ -14,17 +14,17 @@ import (
 type pruneCmd struct {
 	commonCmd
 	option struct {
-		verboseFlags
+		verboseOpts
 		yes  *bool
 		link *bool
 	}
 }
 
-func (cmd *pruneCmd) getOpts() flagger {
+func (cmd *pruneCmd) getOpts() flavor {
 	return &cmd.option
 }
 
-func (cmd *pruneCmd) verboseOpts() verboseFlagger {
+func (cmd *pruneCmd) getVerboseOpts() verboseFlavor {
 	return &cmd.option
 }
 
@@ -56,7 +56,7 @@ Options:
 `
 
 	t := template.Must(template.New("usage").Parse(help))
-	t.Execute(cmd.err, struct{ Prog, Cmd string }{cmd.command, "prune"})
+	t.Execute(cmd.errs, struct{ Prog, Cmd string }{cmd.name, "prune"})
 	cmd.flags.PrintDefaults()
 }
 
@@ -84,10 +84,10 @@ func (cmd *pruneCmd) parseAndExec(args []string) error {
 		if link != "" {
 			if err != nil {
 				// Just in case
-				fmt.Fprintf(cmd.err, "Error! Reading link failed. Path = %s\n", path)
+				fmt.Fprintf(cmd.errs, "Error! Reading link failed. Path = %s\n", path)
 			}
 			if *cmd.option.verbose {
-				fmt.Fprintf(cmd.err, "\"%s\" is symlink. Skip\n", fi.Name())
+				fmt.Fprintf(cmd.errs, "\"%s\" is symlink. Skip\n", fi.Name())
 			}
 			skipped++
 			continue
@@ -98,13 +98,13 @@ func (cmd *pruneCmd) parseAndExec(args []string) error {
 	definedCnt := 0
 	for _, param := range cmd.config.Packages {
 		if param.From == "" {
-			fmt.Fprintf(cmd.err, "Warning! \"from\" is not specified. Skips. pkg = %+v\n", param)
+			fmt.Fprintf(cmd.errs, "Warning! \"from\" is not specified. Skips. pkg = %+v\n", param)
 		}
 
 		pkg, err := packageToInstall(cmd, installArgs{param.From, param.As, param.At, param.Bin})
 		if err == nil && candidates[pkg.name] == prunee {
 			if *cmd.option.verbose {
-				fmt.Fprintf(cmd.err, "\"%s\" is configured\n", pkg.name)
+				fmt.Fprintf(cmd.errs, "\"%s\" is configured\n", pkg.name)
 			}
 			candidates[pkg.name] = defined
 			definedCnt++
@@ -131,12 +131,12 @@ func (cmd *pruneCmd) parseAndExec(args []string) error {
 
 Okay? (Y/n) `
 		t := template.Must(template.New("usage").Parse(confirmation))
-		t.Execute(cmd.out, struct{ Packages []string }{prunees})
+		t.Execute(cmd.outs, struct{ Packages []string }{prunees})
 		stdin := bufio.NewScanner(os.Stdin)
 		stdin.Scan()
 		input := stdin.Text()
 		if strings.HasPrefix(input, "n") || strings.HasPrefix(input, "N") {
-			fmt.Fprintln(cmd.out, "Canceled")
+			fmt.Fprintln(cmd.outs, "Canceled")
 			return ErrCanceled
 		}
 	}

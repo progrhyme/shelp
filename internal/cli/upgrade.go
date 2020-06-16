@@ -36,7 +36,7 @@ Options:
 `
 
 	t := template.Must(template.New("usage").Parse(help))
-	t.Execute(cmd.err, struct{ Prog, Cmd string }{cmd.command, "upgrade"})
+	t.Execute(cmd.errs, struct{ Prog, Cmd string }{cmd.name, "upgrade"})
 
 	cmd.flags.PrintDefaults()
 }
@@ -57,12 +57,12 @@ func (cmd *upgradeCmd) parseAndExec(args []string) error {
 func (cmd *upgradeCmd) upgradeOne(pkg string) error {
 	path := filepath.Join(cmd.config.PackagePath(), pkg)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		fmt.Fprintf(cmd.err, "\"%s\" is not installed\n", pkg)
+		fmt.Fprintf(cmd.errs, "\"%s\" is not installed\n", pkg)
 		return ErrArgument
 	}
 
 	if err := os.Chdir(path); err != nil {
-		fmt.Fprintf(cmd.err, "Error! Directory change failed. Path = %s\n", path)
+		fmt.Fprintf(cmd.errs, "Error! Directory change failed. Path = %s\n", path)
 		return ErrOperationFailed
 	}
 
@@ -95,7 +95,7 @@ func (cmd *upgradeCmd) upgradeAll() error {
 			continue
 		}
 
-		fmt.Fprintf(cmd.out, "Upgrading \"%s\" ...\n", pkg.Name())
+		fmt.Fprintf(cmd.outs, "Upgrading \"%s\" ...\n", pkg.Name())
 		err = cmd.upgradeOne(pkg.Name())
 		if err != nil {
 			return err
@@ -104,9 +104,9 @@ func (cmd *upgradeCmd) upgradeAll() error {
 	}
 
 	if upgraded > 0 {
-		fmt.Fprintf(cmd.out, "%d packages upgraded\n", upgraded)
+		fmt.Fprintf(cmd.outs, "%d packages upgraded\n", upgraded)
 	} else {
-		fmt.Fprintln(cmd.out, "All packages are up-to-date")
+		fmt.Fprintln(cmd.outs, "All packages are up-to-date")
 	}
 	return nil
 }

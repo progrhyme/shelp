@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+// pruneCmd meets both helpRunner & verboseRunner interfaces
 type pruneCmd struct {
 	commonCmd
 	option struct {
@@ -80,12 +81,7 @@ func (cmd *pruneCmd) parseAndExec(args []string) error {
 			continue
 		}
 
-		link, err := os.Readlink(path)
-		if link != "" {
-			if err != nil {
-				// Just in case
-				fmt.Fprintf(cmd.errs, "Error! Reading link failed. Path = %s\n", path)
-			}
+		if isSymlink(path, cmd.errs) {
 			if *cmd.option.verbose {
 				fmt.Fprintf(cmd.errs, "\"%s\" is symlink. Skip\n", fi.Name())
 			}

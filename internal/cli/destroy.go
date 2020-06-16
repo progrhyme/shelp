@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+// meets helpRunner interface
 type destroyCmd struct {
 	commonCmd
 	option struct {

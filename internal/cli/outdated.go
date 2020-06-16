@@ -78,19 +78,14 @@ func hasPackageUpdate(cmd gitRunner, name string) (bool, error) {
 	if *cmd.getVerboseOpts().getVerbose() {
 		fmt.Fprintf(cmd.getErrs(), "[Info] Checking %s ...\n", name)
 	}
-	link, err := os.Readlink(path)
-	if link != "" {
-		if err != nil {
-			// Just in case
-			fmt.Fprintf(cmd.getErrs(), "Error! Reading link failed. Path = %s\n", path)
-		}
+	if isSymlink(path, cmd.getErrs()) {
 		if *cmd.getVerboseOpts().getVerbose() {
 			fmt.Fprintln(cmd.getErrs(), "[Info] Symbolic link. Skip")
 		}
 		return false, nil
 	}
 
-	if err = os.Chdir(path); err != nil {
+	if err := os.Chdir(path); err != nil {
 		fmt.Fprintf(cmd.getErrs(), "Error! Directory change failed. Path = %s\n", path)
 		return false, ErrOperationFailed
 	}

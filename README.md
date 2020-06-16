@@ -37,7 +37,7 @@ Let's see typical commands to achieve this:
 
 ```sh
 bin=/usr/local/bin  # Change to your favorite path
-version=0.5.0       # Make sure this is the latest
+version=0.5.1       # Make sure this is the latest
 os=darwin           # or "linux" is supported
 curl -Lo $bin/shelp "https://github.com/progrhyme/shelp/releases/download/v${version}/shelp_${version}_${os}_x86_64"
 chmod +x $bin/shelp
@@ -192,7 +192,8 @@ shelp list       # List installed packages
 shelp upgrade    # Upgrade installed packages
 shelp outdated   # Show outdated packages
 shelp link       # Pseudo installation of local directory
-shelp bundle     # Install packages at once
+shelp bundle     # Install packages at once with config file
+shelp prune      # Remove packages not defined in config file
 shelp destroy    # Delete all materials including packages
 ```
 

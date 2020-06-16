@@ -1,3 +1,13 @@
+## 0.5.1 (2020-06-16)
+
+Feature: ([#5](https://github.com/progrhyme/shelp/pull/5))
+
+- Add `prune` subcommand to remove packages not configured in config file
+
+Other:
+
+- Refactor a lot
+
 ## 0.5.0 (2020-06-14)
 
 Features: ([#4](https://github.com/progrhyme/shelp/pull/4))

@@ -73,8 +73,9 @@ Options:
 	cmd.flags.PrintDefaults()
 	fmt.Fprintf(cmd.errs, `
 Limitation:
-  1. This command always clones repository as shallow one, with "--depth=1" option
-  2. You can't specify "--branch" option in the latter command syntax, nor others
+  1. This command always clones repository as shallow one, with "--depth=1" option.
+  2. You can't specify "--branch" option in the latter command syntax, nor others.
+     Consider using "bundle" command to do it.
 `)
 }
 

@@ -64,7 +64,6 @@ func (cmd *bundleCmd) parseAndExec(args []string) error {
 		if param.From == "" {
 			fmt.Fprintf(cmd.errs, "Warning! \"from\" is not specified. Skips. pkg = %+v\n", param)
 			hasError = true
-
 		}
 
 		// Install one

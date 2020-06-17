@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Git command executor
 type Git struct {
 	cmd string
 	out io.Writer
@@ -42,6 +43,7 @@ func (g *Git) Clone(src, dst string, opts Option) error {
 	return g.prepareCommand(args, opts.Verbose).Run()
 }
 
+// HasUpdate is supposed to be executed inside a working tree
 func (g *Git) HasUpdate(verbose bool) (bool, error) {
 	err := g.prepareCommand([]string{"fetch"}, verbose).Run()
 	if err != nil {
@@ -55,16 +57,8 @@ func (g *Git) HasUpdate(verbose bool) (bool, error) {
 	}
 
 	args = []string{"rev-list", "--count", "HEAD...HEAD@{upstream}"}
-	s := &strings.Builder{}
-	cmd := exec.Command(g.cmd, args...)
-	cmd.Stdout = s
-	cmd.Stderr = g.err
-	if verbose {
-		fmt.Fprintf(g.err, "[CMD] %s\n", cmd.String())
-	}
-	err = cmd.Run()
+	s, err := g.getCommandOutput(args, verbose, false)
 	if err != nil {
-		fmt.Fprintf(g.err, "Error! git rev-list failed. Error = %v", err)
 		return false, err
 	}
 
@@ -112,4 +106,25 @@ func (g *Git) prepareCommand(args []string, verbose bool) *exec.Cmd {
 		cmd.Stderr = ioutil.Discard
 	}
 	return cmd
+}
+
+func (g *Git) getCommandOutput(args []string, verbose, suppressError bool) (*strings.Builder, error) {
+	s := &strings.Builder{}
+	cmd := exec.Command(g.cmd, args...)
+	cmd.Stdout = s
+	if suppressError {
+		cmd.Stderr = ioutil.Discard
+	} else {
+		cmd.Stderr = g.err
+	}
+	if verbose {
+		fmt.Fprintf(g.err, "[CMD] %s\n", cmd.String())
+	}
+	if err := cmd.Run(); err != nil {
+		if !suppressError {
+			fmt.Fprintf(g.err, "Error! git command failed. Args = %v, Error = %v", args, err)
+		}
+		return s, err
+	}
+	return s, nil
 }

@@ -1,3 +1,9 @@
+## 0.5.2 (2020-06-18)
+
+Enhance: ([#6](https://github.com/progrhyme/shelp/pull/6))
+
+- (bundle) Re-install packages when their specs change; i.e. `from` or `at` values in config file
+
 ## 0.5.1 (2020-06-16)
 
 Feature: ([#5](https://github.com/progrhyme/shelp/pull/5))

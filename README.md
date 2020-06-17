@@ -37,7 +37,7 @@ Let's see typical commands to achieve this:
 
 ```sh
 bin=/usr/local/bin  # Change to your favorite path
-version=0.5.1       # Make sure this is the latest
+version=0.5.2       # Make sure this is the latest
 os=darwin           # or "linux" is supported
 curl -Lo $bin/shelp "https://github.com/progrhyme/shelp/releases/download/v${version}/shelp_${version}_${os}_x86_64"
 chmod +x $bin/shelp
@@ -103,8 +103,10 @@ shelp install git://server/gitproject.git         # Install via Git protocol
 
 Limitation:
 
-1. `shelp install` always clones repository as shallow one, with `--depth=1` option
-2. You can't specify `--branch` option in the latter command syntax, nor others
+1. `shelp install` always clones repository as shallow one, with `--depth=1` option.
+2. You can't specify `--branch` option in the latter command syntax, nor others.
+
+To specify every properties for packages, take a look at [Configuration](#Configuration) section.
 
 ## Shell Function
 

@@ -109,6 +109,10 @@ func (c *Config) BinPath() string {
 	return filepath.Join(c.RootPath(), "bin")
 }
 
+func (c *Config) TempPath() string {
+	return filepath.Join(c.RootPath(), "tmp")
+}
+
 // Same as RootPath(), but don't set c.Path.Root
 func (c *Config) rootPath() string {
 	if c.Path.Root == "" {

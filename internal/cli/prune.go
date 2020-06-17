@@ -97,7 +97,13 @@ func (cmd *pruneCmd) parseAndExec(args []string) error {
 			fmt.Fprintf(cmd.errs, "Warning! \"from\" is not specified. Skips. pkg = %+v\n", param)
 		}
 
-		pkg, err := packageToInstall(cmd, installArgs{param.From, param.As, param.At, param.Bin})
+		ia := installArgs{
+			from: param.From,
+			as:   param.As,
+			at:   param.At,
+			bin:  param.Bin,
+		}
+		pkg, err := packageToInstall(cmd, ia)
 		if err == nil && candidates[pkg.name] == prunee {
 			if *cmd.option.verbose {
 				fmt.Fprintf(cmd.errs, "\"%s\" is configured\n", pkg.name)
@@ -138,7 +144,7 @@ Okay? (Y/n) `
 	}
 
 	for _, name := range prunees {
-		if err = removePackage(cmd, name); err != nil {
+		if err = removePackage(cmd, name, false); err != nil {
 			return err
 		}
 	}

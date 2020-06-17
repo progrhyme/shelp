@@ -50,10 +50,10 @@ func (cmd *removeCmd) parseAndExec(args []string) error {
 		return err
 	}
 
-	return removePackage(cmd, cmd.flags.Arg(0))
+	return removePackage(cmd, cmd.flags.Arg(0), false)
 }
 
-func removePackage(cmd verboseRunner, name string) error {
+func removePackage(cmd verboseRunner, name string, silent bool) error {
 	path := filepath.Join(cmd.getConfig().PackagePath(), name)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		fmt.Fprintf(cmd.getErrs(), "\"%s\" is not installed\n", name)
@@ -69,7 +69,9 @@ func removePackage(cmd verboseRunner, name string) error {
 		return ErrOperationFailed
 	}
 
-	fmt.Fprintf(cmd.getOuts(), "\"%s\" is removed\n", name)
+	if !silent {
+		fmt.Fprintf(cmd.getOuts(), "\"%s\" is removed\n", name)
+	}
 	return nil
 }
 

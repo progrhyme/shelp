@@ -33,9 +33,9 @@ Options:
 	t.Execute(cmd.errs, struct{ Prog, Cmd string }{cmd.name, "bundle"})
 	cmd.flags.PrintDefaults()
 	fmt.Fprintf(cmd.errs, `
-Limitation:
-  Re-installation of existing package is not supported yet.
-  To do this, you have to remove it beforehand.
+Specification:
+  If there are pseudo-installed packages created by "link" command among configured packages,
+  "bundle" operation re-install the packages.
 `)
 }
 
@@ -67,7 +67,14 @@ func (cmd *bundleCmd) parseAndExec(args []string) error {
 		}
 
 		// Install one
-		err = installPackage(cmd, installArgs{param.From, param.As, param.At, param.Bin})
+		pkg := installArgs{
+			from:      param.From,
+			as:        param.As,
+			at:        param.At,
+			bin:       param.Bin,
+			overwrite: true,
+		}
+		err = installPackage(cmd, pkg)
 		switch err {
 		case nil, ErrAlreadyInstalled:
 			success++

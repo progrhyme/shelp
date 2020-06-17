@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -93,6 +94,26 @@ func (g *Git) Pull(verbose bool) error {
 	}
 
 	return cmd.Run()
+}
+
+// Worktree is supposed to be executed inside a working tree
+func (g *Git) Worktree(verbose bool) (Worktree, error) {
+	wt := Worktree{}
+
+	getCmdOut := func(args []string) string {
+		s, err := g.getCommandOutput(args, verbose, true)
+		if err == nil {
+			return strings.TrimRight(s.String(), "\r\n")
+		}
+		return ""
+	}
+	wt.RemoteURL = getCmdOut([]string{"config", "--get", "remote.origin.url"})
+	wt.Branch = getCmdOut([]string{"symbolic-ref", "--short", "--quiet", "HEAD"})
+	wt.Tag = getCmdOut([]string{"tag", "--points-at", "HEAD"})
+	defbranch := getCmdOut([]string{"symbolic-ref", "--short", "--quiet", "refs/remotes/origin/HEAD"})
+	wt.defaultBranch = filepath.Base(defbranch)
+
+	return wt, nil
 }
 
 func (g *Git) prepareCommand(args []string, verbose bool) *exec.Cmd {

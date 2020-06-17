@@ -67,7 +67,14 @@ func (cmd *bundleCmd) parseAndExec(args []string) error {
 		}
 
 		// Install one
-		err = installPackage(cmd, installArgs{param.From, param.As, param.At, param.Bin})
+		pkg := installArgs{
+			from:      param.From,
+			as:        param.As,
+			at:        param.At,
+			bin:       param.Bin,
+			overwrite: true,
+		}
+		err = installPackage(cmd, pkg)
 		switch err {
 		case nil, ErrAlreadyInstalled:
 			success++

@@ -19,17 +19,11 @@ type installCmd struct {
 }
 
 type installArgs struct {
-	from string
-	as   string
-	at   string
-	bin  []string
-}
-
-// shelp package params
-type shelpkg struct {
-	name   string
-	url    string
-	branch string
+	from      string
+	as        string
+	at        string
+	bin       []string
+	overwrite bool
 }
 
 func newInstallCmd(common commonCmd, git git.Git) installCmd {
@@ -104,7 +98,10 @@ func prepareInstallDirectories(cfg *config.Config) error {
 	if err := os.MkdirAll(cfg.PackagePath(), 0755); err != nil {
 		return err
 	}
-	return os.MkdirAll(cfg.BinPath(), 0755)
+	if err := os.MkdirAll(cfg.BinPath(), 0755); err != nil {
+		return err
+	}
+	return os.MkdirAll(cfg.TempPath(), 0755)
 }
 
 func packageToInstall(cmd verboseRunner, args installArgs) (shelpkg, error) {
@@ -132,7 +129,7 @@ func packageToInstall(cmd verboseRunner, args installArgs) (shelpkg, error) {
 		}
 		account := matched[2]
 		repo := matched[3]
-		pkg.branch = matched[4]
+		pkg.ref = matched[4]
 		pkg.url = fmt.Sprintf("https://%s/%s/%s.git", site, account, repo)
 		if pkg.name == "" {
 			pkg.name = repo
@@ -145,7 +142,33 @@ func packageToInstall(cmd verboseRunner, args installArgs) (shelpkg, error) {
 	}
 
 	if args.at != "" {
-		pkg.branch = args.at
+		pkg.ref = args.at
+	}
+
+	return pkg, nil
+}
+
+func packageInstalled(cmd gitRunner, path string) (shelpkg, error) {
+	pkg := shelpkg{}
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintln(cmd.getErrs(), "Error! Can't get current directory")
+	}
+	if err := os.Chdir(path); err != nil {
+		fmt.Fprintf(cmd.getErrs(), "Error! Directory change failed. Path = %s\n", path)
+		return pkg, ErrOperationFailed
+	}
+	defer os.Chdir(pwd)
+
+	repo, err := cmd.getGit().Worktree(*cmd.getVerboseOpts().getVerbose())
+	if err != nil {
+		return pkg, ErrOperationFailed
+	}
+
+	pkg.url = repo.RemoteURL
+	pkg.ref = repo.BranchOrTag()
+	if pkg.ref == repo.Branch && repo.IsBranchDefault() {
+		pkg.isBranchDefault = true
 	}
 
 	return pkg, nil
@@ -158,20 +181,77 @@ func installPackage(cmd gitRunner, args installArgs) error {
 	}
 
 	pkgPath := filepath.Join(cmd.getConfig().PackagePath(), pkg.name)
+	reinstall := false
+
 	if _, err := os.Stat(pkgPath); !os.IsNotExist(err) {
-		fmt.Fprintf(cmd.getErrs(), "\"%s\" is already installed\n", pkg.name)
-		return ErrAlreadyInstalled
+		alreadyInstalled := func() error {
+			fmt.Fprintf(cmd.getErrs(), "\"%s\" is already installed\n", pkg.name)
+			return ErrAlreadyInstalled
+		}
+		if !args.overwrite {
+			return alreadyInstalled()
+		}
+
+		// Always overwrite pseudo package created by "link" command
+		now := shelpkg{}
+		if !isSymlink(pkgPath, cmd.getErrs()) {
+			now, err = packageInstalled(cmd, pkgPath)
+			if err != nil {
+				return err
+			}
+			if pkg.isEquivalent(now) {
+				return alreadyInstalled()
+			}
+		}
+
+		// Re-install
+		reinstall = true
+		fmt.Fprintf(cmd.getErrs(), "Re-install \"%s\"\n", pkg.name)
+		if pkg.url != now.url {
+			fmt.Fprintf(cmd.getErrs(), "  from: %s => %s\n", now.url, pkg.url)
+		}
+		if pkg.ref != now.ref && (pkg.ref != "" || !now.isBranchDefault) {
+			newref := pkg.ref
+			if newref == "" {
+				newref = "(default)"
+			}
+			fmt.Fprintf(cmd.getErrs(), "  at: %s => %s\n", now.ref, newref)
+		}
 	}
 
-	fmt.Fprintf(cmd.getOuts(), "Fetching \"%s\" from %s ...\n", pkg.name, pkg.url)
 	gitOpts := git.Option{
-		Branch:  pkg.branch,
+		Branch:  pkg.ref,
 		Shallow: cmd.getConfig().Git.Shallow,
 		Verbose: *cmd.getVerboseOpts().getVerbose(),
 	}
-	err = cmd.getGit().Clone(pkg.url, pkgPath, gitOpts)
+	tmpath := filepath.Join(cmd.getConfig().TempPath(), pkg.name)
+	err = cmd.getGit().Clone(pkg.url, tmpath, gitOpts)
+
+	defer func() {
+		if _, err := os.Stat(tmpath); !os.IsNotExist(err) {
+			if err := os.RemoveAll(tmpath); err != nil {
+				fmt.Fprintf(cmd.getErrs(), "Error! Directory removal failed. Path = %s\n", tmpath)
+			}
+		}
+	}()
+
 	if err != nil {
+		fmt.Fprintf(
+			cmd.getErrs(), "Error! Installation failed. Package = %s, From = %s\n", pkg.name, pkg.url)
 		return ErrCommandFailed
+	}
+
+	if reinstall {
+		fmt.Fprintf(cmd.getOuts(), "Removing existing \"%s\" ... ", pkg.name)
+		if err = removePackage(cmd, pkg.name, true); err != nil {
+			return err
+		}
+		fmt.Fprintln(cmd.getOuts(), "Done")
+	}
+
+	if err = os.Rename(tmpath, pkgPath); err != nil {
+		fmt.Fprintf(cmd.getErrs(), "Error! Moving directory failed: %s => %s\n", tmpath, pkgPath)
+		return ErrOperationFailed
 	}
 
 	var linkErr error

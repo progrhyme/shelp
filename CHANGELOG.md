@@ -1,3 +1,9 @@
+## 0.5.3 (2020-06-19)
+
+Enhance: ([#7](https://github.com/progrhyme/shelp/pull/7))
+
+- (install, bundle) Support to specify commit hash of repository on installation
+
 ## 0.5.2 (2020-06-18)
 
 Enhance: ([#6](https://github.com/progrhyme/shelp/pull/6))

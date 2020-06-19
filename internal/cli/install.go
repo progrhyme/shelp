@@ -79,7 +79,7 @@ func (cmd *installCmd) parseAndExec(args []string) error {
 	cmd.command = args[0]
 	cmd.flags.Usage = cmd.usage
 
-	done, err := parseStart(cmd, args[1:], true)
+	done, err := parseStart(cmd, args[1:], true, false)
 	if done || err != nil {
 		return err
 	}

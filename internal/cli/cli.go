@@ -113,7 +113,7 @@ func setupCmdFlags(cmd interface{}, name string, usage func()) {
 
 // Start parsing command-line arguments
 // Then, load configuration file if it exists
-func parseStart(cmd helpRunner, args []string, requireArg bool) (done bool, e error) {
+func parseStart(cmd helpRunner, args []string, requireArg, silent bool) (done bool, e error) {
 	if requireArg && len(args) == 0 {
 		cmd.getFlags().Usage()
 		return true, ErrUsage
@@ -139,7 +139,7 @@ func parseStart(cmd helpRunner, args []string, requireArg bool) (done bool, e er
 	if err := cmd.getConfig().LoadConfig(*cmd.getOpts().getConfig()); err != nil {
 		return true, ErrConfig
 	}
-	if cmd.getConfig().IsLoaded() {
+	if cmd.getConfig().IsLoaded() && !silent {
 		fmt.Fprintf(cmd.getErrs(), "Use config: %s\n", cmd.getConfig().File())
 	}
 

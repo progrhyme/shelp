@@ -150,12 +150,8 @@ func packageToInstall(cmd verboseRunner, args installArgs) (shelpkg, error) {
 
 func packageInstalled(cmd gitRunner, path string) (shelpkg, error) {
 	pkg := shelpkg{}
-	pwd, err := os.Getwd()
+	pwd, err := chdir(cmd, path)
 	if err != nil {
-		fmt.Fprintln(cmd.getErrs(), "Error! Can't get current directory")
-	}
-	if err := os.Chdir(path); err != nil {
-		fmt.Fprintf(cmd.getErrs(), "Error! Directory change failed. Path = %s\n", path)
 		return pkg, ErrOperationFailed
 	}
 	defer os.Chdir(pwd)

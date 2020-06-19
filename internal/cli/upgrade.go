@@ -61,10 +61,11 @@ func (cmd *upgradeCmd) upgradeOne(pkg string) error {
 		return ErrArgument
 	}
 
-	if err := os.Chdir(path); err != nil {
-		fmt.Fprintf(cmd.errs, "Error! Directory change failed. Path = %s\n", path)
+	pwd, err := chdir(cmd, path)
+	if err != nil {
 		return ErrOperationFailed
 	}
+	defer os.Chdir(pwd)
 
 	err := cmd.git.Pull(*cmd.option.verbose)
 	if err != nil {

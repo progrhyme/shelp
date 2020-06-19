@@ -144,6 +144,12 @@ func packageToInstall(cmd verboseRunner, args installArgs) (shelpkg, error) {
 	if args.at != "" {
 		pkg.ref = args.at
 	}
+	if pkg.ref != "" {
+		re = regexp.MustCompile(`^[0-9a-f]{7,}$`)
+		if re.MatchString(pkg.ref) {
+			pkg.isCommitHash = true
+		}
+	}
 
 	return pkg, nil
 }
@@ -216,9 +222,13 @@ func installPackage(cmd gitRunner, args installArgs) error {
 	}
 
 	gitOpts := git.Option{
-		Branch:  pkg.ref,
 		Shallow: cmd.getConfig().Git.Shallow,
 		Verbose: *cmd.getVerboseOpts().getVerbose(),
+	}
+	if pkg.isCommitHash {
+		gitOpts.Commit = pkg.ref
+	} else {
+		gitOpts.Branch = pkg.ref
 	}
 	tmpath := filepath.Join(cmd.getConfig().TempPath(), pkg.name)
 	err = cmd.getGit().Clone(pkg.url, tmpath, gitOpts)

@@ -67,7 +67,17 @@ func (cmd *upgradeCmd) upgradeOne(pkg string) error {
 	}
 	defer os.Chdir(pwd)
 
-	err := cmd.git.Pull(*cmd.option.verbose)
+	hasUpdate, err := cmd.git.HasUpdate(*cmd.option.verbose)
+	if err != nil {
+		return ErrCommandFailed
+	}
+
+	if !hasUpdate {
+		fmt.Fprintln(cmd.outs, "No need to upgrade")
+		return nil
+	}
+
+	err = cmd.git.Pull(*cmd.option.verbose)
 	if err != nil {
 		return ErrCommandFailed
 	}

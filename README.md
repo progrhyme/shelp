@@ -72,11 +72,13 @@ Command Syntax:
 
 ```sh
 # Handy syntax using HTTPS protocol
-shelp install [<site>/]<account>/<repository>[@<branch>] [<package>]
+shelp install [<site>/]<account>/<repository>[@<ref>] [<package>]
 
 # Specify complete git-url with any protocol
 shelp install <git-url> [<package>]
 ```
+
+You can specify any branch or tag or commit hash for `@<ref>` parameter.
 
 For example, the following command installs https://github.com/bats-core/bats-core
 into `$SHELP_ROOT/packages/bats` directory.

@@ -14,7 +14,7 @@ git:
 # Spec:
 # - from: <remote-location>
 #   as: <package-name>
-#   at: <branch-or-tag>
+#   at: <branch-or-tag-or-commitHash>
 #   bin:
 #     - <path-to-bin-file>
 #     - :

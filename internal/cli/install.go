@@ -40,12 +40,13 @@ func (cmd *installCmd) usage() {
 
 Syntax:
   # Handy syntax using HTTPS protocol
-  {{.Prog}} {{.Cmd}} [<site>/]<account>/<repository>[@<branch>] [<package-name>]
+  {{.Prog}} {{.Cmd}} [<site>/]<account>/<repository>[@<ref>] [<package-name>]
 
   # Specify complete git-url with any protocol
   {{.Prog}} {{.Cmd}} <git-url> [<package-name>]
 
 If you ommit preceding "<site>/" specifier in former syntax, "github.com" is used by default.
+You can specify any branch or tag or commit hash for "@<ref>" parameter.
 
 Examples:
   # Handy syntax
@@ -67,9 +68,10 @@ Options:
 	cmd.flags.PrintDefaults()
 	fmt.Fprintf(cmd.errs, `
 Limitation:
-  1. This command always clones repository as shallow one, with "--depth=1" option.
+  1. Unless you specify commit hash by "@<ref>" param, this command clones repository as shallow
+     one by "--depth=1" option.
   2. You can't specify "--branch" option in the latter command syntax, nor others.
-     Consider using "bundle" command to do it.
+     Consider using "bundle" command with configuration file to do it.
 `)
 }
 

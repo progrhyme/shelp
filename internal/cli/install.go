@@ -144,18 +144,20 @@ func packageToInstall(cmd verboseRunner, args installArgs) (shelpkg, error) {
 	if args.at != "" {
 		pkg.ref = args.at
 	}
+	if pkg.ref != "" {
+		re = regexp.MustCompile(`^[0-9a-f]{7,}$`)
+		if re.MatchString(pkg.ref) {
+			pkg.isCommitHash = true
+		}
+	}
 
 	return pkg, nil
 }
 
 func packageInstalled(cmd gitRunner, path string) (shelpkg, error) {
 	pkg := shelpkg{}
-	pwd, err := os.Getwd()
+	pwd, err := chdir(cmd, path)
 	if err != nil {
-		fmt.Fprintln(cmd.getErrs(), "Error! Can't get current directory")
-	}
-	if err := os.Chdir(path); err != nil {
-		fmt.Fprintf(cmd.getErrs(), "Error! Directory change failed. Path = %s\n", path)
 		return pkg, ErrOperationFailed
 	}
 	defer os.Chdir(pwd)
@@ -220,9 +222,13 @@ func installPackage(cmd gitRunner, args installArgs) error {
 	}
 
 	gitOpts := git.Option{
-		Branch:  pkg.ref,
 		Shallow: cmd.getConfig().Git.Shallow,
 		Verbose: *cmd.getVerboseOpts().getVerbose(),
+	}
+	if pkg.isCommitHash {
+		gitOpts.Commit = pkg.ref
+	} else {
+		gitOpts.Branch = pkg.ref
 	}
 	tmpath := filepath.Join(cmd.getConfig().TempPath(), pkg.name)
 	err = cmd.getGit().Clone(pkg.url, tmpath, gitOpts)

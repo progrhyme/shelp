@@ -6,6 +6,7 @@ type shelpkg struct {
 	url             string
 	ref             string
 	isBranchDefault bool
+	isCommitHash    bool
 }
 
 func (pkg *shelpkg) isEquivalent(tgt shelpkg) bool {

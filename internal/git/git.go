@@ -20,6 +20,7 @@ type Git struct {
 // Option for some operations to pass from outside of this package
 type Option struct {
 	Branch  string
+	Commit  string
 	Shallow bool
 	Verbose bool
 }
@@ -34,14 +35,35 @@ func NewGit(out, err io.Writer) Git {
 
 func (g *Git) Clone(src, dst string, opts Option) error {
 	args := []string{"clone", src}
-	if opts.Branch != "" {
-		args = append(args, fmt.Sprintf("--branch=%s", opts.Branch))
+	if opts.Commit == "" {
+		if opts.Branch != "" {
+			args = append(args, fmt.Sprintf("--branch=%s", opts.Branch))
+		}
+		if opts.Shallow {
+			args = append(args, "--depth=1")
+		}
+		args = append(args, dst)
+		return g.prepareCommand(args, opts.Verbose).Run()
 	}
-	if opts.Shallow {
-		args = append(args, "--depth=1")
-	}
+
 	args = append(args, dst)
-	return g.prepareCommand(args, opts.Verbose).Run()
+	err := g.prepareCommand(args, opts.Verbose).Run()
+	if err != nil {
+		return err
+	}
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintln(g.err, "Error! Can't get current directory")
+		return err
+	}
+	if err := os.Chdir(dst); err != nil {
+		fmt.Fprintf(g.err, "Error! Directory change failed. Path = %s\n", dst)
+		return err
+	}
+	defer os.Chdir(pwd)
+
+	return g.prepareCommand([]string{"checkout", opts.Commit}, opts.Verbose).Run()
+
 }
 
 // HasUpdate is supposed to be executed inside a working tree
@@ -77,6 +99,7 @@ func (g *Git) HasUpdate(verbose bool) (bool, error) {
 	}
 }
 
+// Pull is supposed to be executed inside a working tree
 func (g *Git) Pull(verbose bool) error {
 	// NOTE: "shallow" option for Pull operation is incomplete.
 	//  It happens to cause merge conflicts.

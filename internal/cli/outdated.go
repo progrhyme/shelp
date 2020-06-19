@@ -85,9 +85,11 @@ func hasPackageUpdate(cmd gitRunner, name string) (bool, error) {
 		return false, nil
 	}
 
-	if err := os.Chdir(path); err != nil {
-		fmt.Fprintf(cmd.getErrs(), "Error! Directory change failed. Path = %s\n", path)
+	pwd, err := chdir(cmd, path)
+	if err != nil {
 		return false, ErrOperationFailed
 	}
+	defer os.Chdir(pwd)
+
 	return cmd.getGit().HasUpdate(*cmd.getVerboseOpts().getVerbose())
 }

@@ -23,6 +23,11 @@ type testInstallParam struct {
 	bins []string
 }
 
+type testUpgradeParam struct {
+	pkg    string
+	outStr string
+}
+
 type testRemoveParam struct {
 	pkg  string
 	bins []string
@@ -72,6 +77,11 @@ func TestWorkflow(t *testing.T) {
 			bins: []string{"shove"},
 		},
 		{
+			args: []string{"github.com/progrhyme/gcloud-prompt@1d2f918"},
+			pkg:  "gcloud-prompt",
+			bins: []string{},
+		},
+		{
 			args: []string{fmt.Sprintf("file://%s", repoDir)},
 			pkg:  "shelp",
 			bins: []string{},
@@ -79,7 +89,15 @@ func TestWorkflow(t *testing.T) {
 	}
 	testInstallPackages(t, testInstallParams, cparam)
 
-	testListInstalled(t, []string{"bash-links", "shelp", "shove@v0.8.3"}, cparam)
+	testListInstalled(t, []string{"bash-links", "gcloud-prompt", "shelp", "shove@v0.8.3"}, cparam)
+
+	// Upgrade packages
+	testUpgradeParams := []testUpgradeParam{
+		{pkg: "bash-links", outStr: "No need to upgrade"},
+		{pkg: "gcloud-prompt", outStr: "No need to upgrade"},
+		{pkg: "shove@v0.8.3", outStr: "No need to upgrade"},
+	}
+	testUpgradePackages(t, testUpgradeParams, cparam)
 
 	// prepare source contents before remove
 	outStr := &strings.Builder{}
@@ -98,7 +116,7 @@ func TestWorkflow(t *testing.T) {
 	}
 	testRemovePackages(t, testRemoveParams, cparam)
 
-	testListInstalled(t, []string{"shelp", "shove@v0.8.3"}, cparam)
+	testListInstalled(t, []string{"gcloud-prompt", "shelp", "shove@v0.8.3"}, cparam)
 
 	// Link some packages
 	testLinkParams := []testLinkParam{
@@ -115,14 +133,14 @@ func TestWorkflow(t *testing.T) {
 	}
 	testLinkPackages(t, testLinkParams, cparam)
 
-	testListInstalled(t, []string{"cli", "links", "shelp", "shove@v0.8.3"}, cparam)
+	testListInstalled(t, []string{"cli", "gcloud-prompt", "links", "shelp", "shove@v0.8.3"}, cparam)
 
 	testRemoveParams = []testRemoveParam{
 		{pkg: "links", bins: []string{"links"}},
 	}
 	testRemovePackages(t, testRemoveParams, cparam)
 
-	testListInstalled(t, []string{"cli", "shelp", "shove@v0.8.3"}, cparam)
+	testListInstalled(t, []string{"cli", "gcloud-prompt", "shelp", "shove@v0.8.3"}, cparam)
 
 	testDestroy(t, cparam)
 	testListInstalled(t, []string{}, cparam)
@@ -159,6 +177,27 @@ func testInstallPackages(t *testing.T, targets []testInstallParam, cp testCliPar
 				if !strings.HasPrefix(src, path) {
 					t.Errorf("Not linked to package: %s -> %s", sym, src)
 				}
+			}
+		})
+	}
+}
+
+func testUpgradePackages(t *testing.T, targets []testUpgradeParam, cp testCliParam) {
+	for _, target := range targets {
+		subtest := fmt.Sprintf("upgrade %s", target.pkg)
+		t.Run(subtest, func(t *testing.T) {
+			outStr := &strings.Builder{}
+			errStr := &strings.Builder{}
+			gitCtl := git.NewGit(outStr, errStr)
+			ctl := NewCli(cp.version, cp.config, gitCtl, outStr, errStr)
+			args := append([]string{cp.prog, "upgrade"}, target.pkg)
+
+			err := ctl.ParseAndExec(args)
+			if err != nil {
+				t.Errorf("Upgrade failed. Error = %v, target = %s", err, target.pkg)
+			}
+			if !strings.Contains(outStr.String(), target.outStr) {
+				t.Errorf("[Stdout] Got: %s, Expected: %s", outStr.String(), target.outStr)
 			}
 		})
 	}

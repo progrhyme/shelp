@@ -37,7 +37,7 @@ Let's see typical commands to achieve this:
 
 ```sh
 bin=/usr/local/bin  # Change to your favorite path
-version=0.5.2       # Make sure this is the latest
+version=0.5.3       # Make sure this is the latest
 os=darwin           # or "linux" is supported
 curl -Lo $bin/shelp "https://github.com/progrhyme/shelp/releases/download/v${version}/shelp_${version}_${os}_x86_64"
 chmod +x $bin/shelp

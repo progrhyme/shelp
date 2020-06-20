@@ -120,10 +120,17 @@ Syntax:`,
 Syntax:`,
 	}
 
-	initText := fmt.Sprintf(`export %s="%s"
+	initTextSh := fmt.Sprintf(`export %s="%s"
 PATH="%s:${PATH}"
 
 # Load script in a package`, config.RootVarName, cfg.RootPath(), cfg.BinPath())
+
+	initTextFish := fmt.Sprintf(`set -gx %s %s
+if not contains %s $PATH
+  set -gx PATH %s $PATH
+end
+
+# Load script in a package`, config.RootVarName, cfg.RootPath(), cfg.BinPath(), cfg.BinPath())
 
 	// Test cases
 	tests := []struct {
@@ -162,7 +169,8 @@ PATH="%s:${PATH}"
 			ErrParseFailed, "",
 			strings.Join([]string{flagError, commands["init"].helpText}, "\n"),
 		},
-		{[]string{prog, "init", "-"}, nil, initText, ""},
+		{[]string{prog, "init", "-"}, nil, initTextSh, ""},
+		{[]string{prog, "init", "-", "fish"}, nil, initTextFish, ""},
 
 		// Subcommand "install"
 		{

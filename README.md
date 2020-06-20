@@ -7,8 +7,12 @@
 # Prerequisites
 
 - OS: Linux or macOS
-- Shell: Most POSIX compatible shells including Zsh. Tested on Bash & Zsh
 - `git` command installed
+
+# Supported Shells
+
+- Most POSIX compatible shells including Zsh. Tested on Bash & Zsh
+- fish shell
 
 # Installation
 ## Install Binary
@@ -37,7 +41,7 @@ Let's see typical commands to achieve this:
 
 ```sh
 bin=/usr/local/bin  # Change to your favorite path
-version=0.5.3       # Make sure this is the latest
+version=0.6.0       # Make sure this is the latest
 os=darwin           # or "linux" is supported
 curl -Lo $bin/shelp "https://github.com/progrhyme/shelp/releases/download/v${version}/shelp_${version}_${os}_x86_64"
 chmod +x $bin/shelp
@@ -57,7 +61,15 @@ To enable `shelp` automatically in your shell, append the following to your
 profile script (such as `~/.bashrc` or `~/.zshrc`):
 
 ```sh
+# For POSIX-like shells
 eval "$(shelp init -)"
+```
+
+As for fish shell, append the following to `~/.config/fish/config.fish`:
+
+```sh
+# For fish shell
+shelp init - | source
 ```
 
 If you want to store `shelp` materials in a location different from the default `~/.shelp`, set
@@ -112,7 +124,7 @@ To specify every properties for packages, take a look at [Configuration](#Config
 
 ## Shell Function
 
-The command `eval "$(shelp init -)"` loads a shell function `include`.
+The command `eval "$(shelp init -)"` (or `shelp init - | source`) loads a shell function `include`.
 
 Function Usage:
 
@@ -128,6 +140,10 @@ Then, the following command load oh-my-zsh.sh on your current shell:
 ```sh
 include ohmyzsh oh-my-zsh.sh
 ```
+
+NOTE:
+
+- In fish shell, source(1) command is used instead of `.` to load scripts
 
 # Configuration
 

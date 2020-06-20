@@ -1,3 +1,9 @@
+## 0.6.0 (2020-06-20)
+
+Feature: ([#8](https://github.com/progrhyme/shelp/pull/8))
+
+- (init) Support fish shell
+
 ## 0.5.3 (2020-06-19)
 
 Enhance: ([#7](https://github.com/progrhyme/shelp/pull/7))

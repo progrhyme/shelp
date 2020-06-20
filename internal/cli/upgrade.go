@@ -42,7 +42,7 @@ Options:
 }
 
 func (cmd *upgradeCmd) parseAndExec(args []string) error {
-	done, err := parseStart(cmd, args, false)
+	done, err := parseStart(cmd, args, false, false)
 	if done || err != nil {
 		return err
 	}

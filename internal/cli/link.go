@@ -43,7 +43,7 @@ Options:
 }
 
 func (cmd *linkCmd) parseAndExec(args []string) error {
-	done, err := parseStart(cmd, args, true)
+	done, err := parseStart(cmd, args, true, false)
 	if done || err != nil {
 		return err
 	}

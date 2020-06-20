@@ -42,6 +42,8 @@ func shellProfile(shell string) string {
 		}
 	case "zsh":
 		prof = "~/.zshrc"
+	case "fish":
+		prof = "~/.config/fish/config.fish"
 	default:
 		prof = "its profile"
 	}
@@ -57,24 +59,34 @@ Usage:
 
   To enable {{.Prog}} automatically in one's shell, append the following to {{.Profile}}:
 
-    eval "$({{.Prog}} init -)"
+    {{.InitCommand}}
 
   It prints scripts for current shell unless user specify SHELL argument.
 
-Limitation:
-  Only POSIX compatible shells are supported for now.
+Supported Shells:
+- Most POSIX compatible shells including Zsh
+- fish shell
 
 Options:
 `
 
 	t := template.Must(template.New("usage").Parse(help))
-	t.Execute(cmd.errs, struct{ Prog, Profile string }{cmd.name, cmd.shProf})
+	params := struct{ Prog, Profile, InitCommand string }{
+		Prog: cmd.name, Profile: cmd.shProf,
+	}
+	switch cmd.shell {
+	case "fish":
+		params.InitCommand = fmt.Sprintf(`%s init - | source`, cmd.name)
+	default:
+		params.InitCommand = fmt.Sprintf(`eval "$(%s init -)`, cmd.name)
+	}
+	t.Execute(cmd.errs, params)
 
 	cmd.flags.PrintDefaults()
 }
 
 func (cmd *initCmd) parseAndExec(args []string) error {
-	done, err := parseStart(cmd, args, true)
+	done, err := parseStart(cmd, args, true, true)
 	if done || err != nil {
 		return err
 	}
@@ -106,7 +118,40 @@ func (cmd *initCmd) resetShell() {
 }
 
 func (cmd *initCmd) printInitShellScripts(out io.Writer) {
-	const script = `export <<.RootPathKey>>="<<.RootPath>>"
+	var script string
+	switch cmd.shell {
+	case "fish":
+		script = `set -gx <<.RootPathKey>> <<.RootPath>>
+if not contains <<.BinPath>> $PATH
+  set -gx PATH <<.BinPath>> $PATH
+end
+
+# Load script in a package
+function include
+  set package $argv[1]
+  set file $argv[2]
+
+  if test -z "$package" -o -z "$file"
+    echo "Usage: include <package> <file>" >&2
+    return 1
+  end
+
+  if test ! -e "$<<.RootPathKey>>/packages/$package"
+    echo "Package not installed: $package" >&2
+    return 1
+  end
+
+  if test -e "$<<.RootPathKey>>/packages/$package/$file"
+    source "$<<.RootPathKey>>/packages/$package/$file" >&2
+  else
+    echo "File not found: $<<.RootPathKey>>/packages/$package/$file" >&2
+    return 1
+  end
+end
+`
+
+	default:
+		script = `export <<.RootPathKey>>="<<.RootPath>>"
 PATH="<<.BinPath>>:${PATH}"
 
 # Load script in a package
@@ -136,6 +181,7 @@ include() {
   fi
 }
 `
+	}
 
 	params := struct{ RootPathKey, RootPath, BinPath string }{
 		config.RootVarName, cmd.config.RootPath(), cmd.config.BinPath()}

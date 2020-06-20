@@ -50,7 +50,7 @@ Usage:`, prog),
 	commands["install"] = command{
 		true,
 		fmt.Sprintf(`Summary:
-  Install a repository from HTTPS site as a %s package, assuming it contains shell scripts.
+  Install a git repository as a %s package and create symlinks for executable files in it.
 
 Syntax:`, prog),
 	}
@@ -58,7 +58,7 @@ Syntax:`, prog),
 	commands["remove"] = command{
 		true,
 		`Summary:
-  Uninstall a package.
+  Uninstall a package clearing symlinks of executable files if they exist.
 
 Syntax:`,
 	}

@@ -23,7 +23,7 @@ func newRemoveCmd(common commonCmd) removeCmd {
 
 func (cmd *removeCmd) usage() {
 	const help = `Summary:
-  Uninstall a package.
+  Uninstall a package clearing symlinks of executable files if they exist.
 
 Syntax:
   {{.Prog}} {{.Cmd}} <package>

@@ -219,7 +219,7 @@ shelp destroy    # Delete all materials including packages
 
 # Alternatives
 
-There are othere tools to manage shell scripts in modular way.  
+There are other tools to manage shell scripts in modular way.  
 Pick up some of them here.
 
  Software | Supported Shells

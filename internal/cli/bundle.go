@@ -34,8 +34,9 @@ Options:
 	cmd.flags.PrintDefaults()
 	fmt.Fprintf(cmd.errs, `
 Specification:
-  If there are pseudo-installed packages created by "link" command among configured packages,
-  "bundle" operation re-install the packages.
+  If there are pseudo-installed packages created by "link" command whose names are the same as
+  configured packages, "bundle" operation removes the package at first, then re-install it according
+  to the configuration.
 `)
 }
 

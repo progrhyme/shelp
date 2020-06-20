@@ -36,7 +36,7 @@ func newInstallCmd(common commonCmd, git git.Git) installCmd {
 
 func (cmd *installCmd) usage() {
 	const help = `Summary:
-  Install a repository from HTTPS site as a {{.Prog}} package, assuming it contains shell scripts.
+  Install a git repository as a {{.Prog}} package and create symlinks for executable files in it.
 
 Syntax:
   # Handy syntax using HTTPS protocol

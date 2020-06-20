@@ -28,7 +28,7 @@ func (cmd *outdatedCmd) usage() {
 Syntax:
   {{.Prog}} {{.Cmd}}
 
-To update a package, run "{{.Prog}} upgrade <package>".
+To update a package, run "{{.Prog}} upgrade [<package>]".
 
 Options:
 `

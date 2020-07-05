@@ -13,6 +13,8 @@ on:
 
 env:
   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+  SLACK_CHANNEL: development
+  SLACK_USERNAME: go-test
 
 jobs:
   test:
@@ -30,13 +32,11 @@ jobs:
       if: success()
       uses: rtCamp/action-slack-notify@v2.0.2
       env:
-        SLACK_CHANNEL: development
-        SLACK_TITLE: Test Success
+        SLACK_TITLE: Test Success - github.com/progrhyme/shelp
 
     - name: Slack Notification on Failure
       uses: rtCamp/action-slack-notify@v2.0.2
       if: failure()
       env:
-        SLACK_CHANNEL: development
-        SLACK_TITLE: Test Failure
+        SLACK_TITLE: Test Failure - github.com/progrhyme/shelp
         SLACK_COLOR: danger

@@ -24,3 +24,15 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
+brews:
+- tap:
+    owner: progrhyme
+    name: homebrew-tap
+    token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+  folder: Formula
+  homepage: https://go-shelp.netlify.app/
+  description: Git-based package manager for shell scripts written in Go
+  install:
+    bin.install '{{ .Binary }}' => 'shelp'
+  test: |
+    system "#{bin}/shelp", '--version'

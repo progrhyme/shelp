@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mattn/go-isatty"
 	"github.com/progrhyme/shelp/internal/config"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 // meets helpRunner interface
@@ -54,7 +54,7 @@ func (cmd *destroyCmd) parseAndExec(args []string) error {
 		return ErrOperationFailed
 	}
 
-	if terminal.IsTerminal(0) {
+	if isatty.IsTerminal(os.Stdin.Fd()) {
 		if !*cmd.option.yes {
 			fmt.Fprintf(cmd.outs, `Delete all contents in %s including packages and the directory itself.
 Are you sure? (y/N) `, root)

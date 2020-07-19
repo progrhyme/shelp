@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"golang.org/x/crypto/ssh/terminal"
+	"github.com/mattn/go-isatty"
 )
 
 // pruneCmd meets both helpRunner & verboseRunner interfaces
@@ -126,7 +126,7 @@ func (cmd *pruneCmd) parseAndExec(args []string) error {
 		prunees = append(prunees, name)
 	}
 
-	if terminal.IsTerminal(0) && !*cmd.option.yes {
+	if isatty.IsTerminal(os.Stdin.Fd()) && !*cmd.option.yes {
 		const confirmation = `Packages to remove:
 {{- range $i, $name := .Packages}}
   {{$name}}{{end}}
